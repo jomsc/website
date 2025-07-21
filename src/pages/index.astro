@@ -1,16 +1,23 @@
 ---
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
+import '../styles/global.css';
+import Bouton from '../components/Bouton.astro';
 ---
+
 <html lang="en">
   <head>
     <meta charset="utf-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="generator" content={Astro.generator} >
-    <title>Astro</title>
+    <title>JOMSC</title>
   </head>
   <body>
-    <h1>JOMSC</h1>
+    <h1 class="titre">MAUDIT MAN</h1>
+
+	<Bouton name="WHO AM I" link="whoami" /><br>
+	<Bouton name="PROJECTS" link="projects" /><br>
+	<Bouton name="CONTACT" link="contact" /><br>
+	<Bouton name="LINKS" link="links" /><br>
+
   </body>
 </html>
