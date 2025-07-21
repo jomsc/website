@@ -1,7 +1,7 @@
 ---
 import '../styles/global.css';
+import Social from '../components/Social.astro';
 ---
-
 <html lang="en">
   <head>
     <meta charset="utf-8" />
@@ -9,11 +9,21 @@ import '../styles/global.css';
     <meta name="viewport" content="width=device-width" />
     <meta name="generator" content={Astro.generator} >
     <title>JOMSC</title>
-  </head>
-  <body>
-    <a href="/">MAUDIT MAN</a>
-    <h2>CONTACT</h2>
 
-    <p>contact@mauditman.fr</p>
+  </head>
+  <body class="h-full">
+	<div class="flex w-full h-full">
+		<div class="w-1/2 h-full">
+			<h1><a href="/">JOSEPH MOUSCADET</a></h1>
+		</div>
+		<div class="corps w-1/2 h-full flex flex-col">
+			<h2>LINKS / CONTACT</h2>
+
+            <Social platform="github" username="jomsc">
+		</div>
+	</div>
+
+	
+
   </body>
 </html>

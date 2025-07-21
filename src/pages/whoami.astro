@@ -1,5 +1,6 @@
 ---
 import '../styles/global.css';
+import Bouton from '../components/Bouton.astro';
 ---
 
 <html lang="en">
@@ -9,11 +10,23 @@ import '../styles/global.css';
     <meta name="viewport" content="width=device-width" />
     <meta name="generator" content={Astro.generator} >
     <title>JOMSC</title>
-  </head>
-  <body>
-    <a href="/">MAUDIT MAN</a>
-    <h2>WHO AM I</h2>
 
-    <p>My name is Joseph Mouscadet !</p>
+  </head>
+  <body class="h-full">
+	<div class="flex w-full h-full">
+		<div class="w-1/2 h-full">
+			<h1><a href="/">JOSEPH MOUSCADET</a></h1>
+		</div>
+		<div class="corps w-1/2 h-full flex flex-col">
+			<h2>WHO AM I</h2>
+            <p class="texte">
+                My name is Joseph Mouscadet ! 
+                I am a student from ENSTA Paris, interested in Visual Arts.
+            </p>
+		</div>
+	</div>
+
+	
+
   </body>
 </html>

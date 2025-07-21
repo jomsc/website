@@ -16,10 +16,8 @@ html {
 
 body {
   margin: auto;
-  width: 100%;
-  max-width: 80ch;
   line-height: 1.5;
-  font-size: 3rem;
+  font-size: 1.2rem;
 }
 
 h1 {
@@ -28,3 +26,20 @@ h1 {
   padding: 0.5rem 1rem;
 }
 
+h2 {
+    font-size: 3rem;
+}
+
+.corps {
+    padding: 1rem 2rem;
+    color: black;
+    background-color: #d1d1d1;
+    text-decoration: none;
+    border-style: solid;
+    border-color: black;
+    border-width: 0px 0px 1px 1px;
+}
+
+.texte {
+    padding: 1% 5%;
+}
