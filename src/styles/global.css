@@ -1,27 +1,30 @@
 @import "tailwindcss";
 
+@font-face {
+    font-family: JetBrains;
+    font-style: normal;
+    font-weight: 200 700;
+    font-display: swap;
+    src: url(/src/assets/JetBrainsMono-Regular.woff2) format("woff2");
+}
+
 html {
   background-color: #a9a9a9;
-  font-family: monospace;
+  font-family: JetBrains;
+  height: 100%;
 }
 
 body {
   margin: auto;
   width: 100%;
   max-width: 80ch;
-  padding: 1rem;
   line-height: 1.5;
   font-size: 3rem;
-  text-align: right;
-}
-
-* {
-  box-sizing: border-box;
 }
 
 h1 {
-  margin: 1rem 0;
-  font-size: 6rem;
+  font-size: 4rem;
   text-align: left;
+  padding: 0.5rem 1rem;
 }
 

@@ -1,13 +1,16 @@
 ---
-const { name, link } = Astro.props;
+const { name, link, class: className } = Astro.props;
 ---
-<a href={`/${link}/`}>{name}</a>
+<a href={`/${link}/`} class={className}>{name}</a>
 
 <style>
   a {
-    padding: 0.5rem 1rem;
+    padding: 1rem 2rem;
     color: black;
-    background-color: #d9d9d9;
+    background-color: #c7c7c7;
     text-decoration: none;
+    border-style: solid;
+    border-color: black;
+    border-width: 0px 0px 1px 1px;
   }
 </style>

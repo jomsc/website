@@ -11,13 +11,20 @@ import Bouton from '../components/Bouton.astro';
     <meta name="generator" content={Astro.generator} >
     <title>JOMSC</title>
   </head>
-  <body>
-    <h1 class="titre">MAUDIT MAN</h1>
+  <body class="h-full">
+	<div class="flex w-full h-full">
+		<div class="w-1/2 h-full">
+			<h1 class="titre">JOSEPH MOUSCADET</h1>
+		</div>
+		<div class="w-1/2 h-full flex flex-col">
+			<Bouton name="WHO AM I" link="whoami" class="flex-1"/>
+			<Bouton name="PROJECTS" link="projects" class="flex-1"/>
+			<Bouton name="CONTACT" link="contact" class="flex-1"/>
+			<Bouton name="LINKS" link="links" class="flex-1"/>
+		</div>
+	</div>
 
-	<Bouton name="WHO AM I" link="whoami" /><br>
-	<Bouton name="PROJECTS" link="projects" /><br>
-	<Bouton name="CONTACT" link="contact" /><br>
-	<Bouton name="LINKS" link="links" /><br>
+	
 
   </body>
 </html>
