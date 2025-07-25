@@ -20,10 +20,12 @@ body {
   font-size: 1.2rem;
 }
 
+
 h1 {
   font-size: 4rem;
   text-align: left;
   padding: 0.5rem 1rem;
+  color: #000000;
 }
 
 h2 {
@@ -38,6 +40,10 @@ h2 {
     border-style: solid;
     border-color: black;
     border-width: 0px 0px 1px 1px;
+}
+
+.bg2 {
+  background-color: #d1d1d1;
 }
 
 .texte {

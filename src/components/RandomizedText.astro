@@ -1,0 +1,208 @@
+---
+// RandomizedText.astro
+interface Props {
+  text: string;
+  link: string;
+  className?: string;
+  duration?: number; // Duration in milliseconds
+  imageid?: string;
+}
+
+const { text, link, className = "", duration = 1000, imageid = "image1" } = Astro.props;
+---
+
+<a
+  class={`randomized-text cursor-pointer ${className}`}
+  data-original-text={text}
+  data-duration={duration}
+  data-link={link}
+  data-imageid={imageid}
+  href={`/${link}/`}
+>
+  <h2>{text}</h2>
+</a>
+
+<script>
+import { float } from "three/tsl";
+
+  class RandomizedTextEffect {
+    private element: HTMLElement;
+    private textElement: HTMLElement;
+    private originalText: string;
+    private duration: number;
+    private isAnimating: boolean = false;
+    private animationId: number | null = null;
+    private timeoutId: number | null = null;
+    private link: string;
+    private imageid: string;
+
+    // Characters to use for randomization
+    private readonly chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()-_[]{}+=?';
+
+    constructor(element: HTMLElement) {
+      this.element = element;
+      // Find the h2 element inside the link
+      this.textElement = element.querySelector('h2') || element;
+      this.originalText = element.dataset.originalText || this.textElement.textContent || '';
+      this.duration = parseInt(element.dataset.duration || '1000');
+      this.link = element.dataset.link || 'whoami';
+      this.imageid = element.dataset.imageid || 'image1';
+      this.setupEventListeners();
+    }
+
+    private setupEventListeners(): void {
+      this.element.addEventListener('mouseenter', () => this.startAnimation());
+      this.element.addEventListener('mouseleave', () => this.stopAnimation());
+    }
+
+    private getRandomChar(): string {
+      return this.chars[Math.floor(Math.random() * this.chars.length)];
+    }
+
+    private randomizeText(progress: number): string {
+      var i = Math.ceil(this.originalText.length*progress);
+
+      var randText = this.originalText.slice(i).split('')
+        .map(char => char === ' ' || char === '/' ? char : this.getRandomChar())
+        .join('');
+
+      var result = this.originalText.slice(0, i).concat(randText)
+
+      return result
+        
+    }
+
+    private startAnimation(): void {
+      if (this.isAnimating) return;
+
+      document.querySelectorAll<HTMLElement>(this.imageid).forEach(element => {
+        element.classList.remove('opacity-0');
+      })
+
+      document.querySelectorAll<HTMLElement>('.corps').forEach(element => {
+        element.classList.remove('opacity-100');
+        element.classList.add('opacity-0');
+      });
+
+      document.querySelectorAll<HTMLElement>('.menuvideo').forEach(element => {
+        element.classList.remove('opacity-100');
+        element.classList.add('opacity-0');
+      });
+
+      document.querySelectorAll<HTMLElement>('.titre').forEach(element => {
+        element.style.color = '#000000';
+      });
+      
+      if (this.isAnimating == false) {
+        // Create floating text in front layer
+        
+        const rect = this.textElement.getBoundingClientRect();
+        const floatingText = this.textElement.cloneNode(true) as HTMLElement;
+        floatingText.style.position = 'absolute';
+        floatingText.style.zIndex = '40'; // Higher than image (z-20)
+        floatingText.style.opacity = '1';
+        
+        // Position it exactly where the original was
+        floatingText.style.left = rect.left + 'px';
+        floatingText.style.top = rect.top + 'px';
+        floatingText.style.color = '#00ff00';
+        floatingText.style.backgroundColor = '#5e4813';
+        floatingText.className = 'floating-text text-clone pointer-events-none mix-blend-difference';
+        
+        //highlightBox.appendChild(floatingText);
+        document.body.appendChild(floatingText);
+      }
+      
+      this.textElement.style.opacity = '0';
+      
+      this.isAnimating = true;
+      const startTime = Date.now();
+      
+      const animate = (): void => {
+        const elapsed = Date.now() - startTime;
+        const progress = elapsed / this.duration;
+        
+        if (progress < 1) {
+          // During animation, show random characters in the h2 element
+          var randText = this.randomizeText(progress);
+          document.querySelectorAll<HTMLElement>('.text-clone').forEach(element => {
+            element.textContent = randText;
+          })
+          this.animationId = requestAnimationFrame(animate);
+        } else {
+          // Animation complete, show original text in the h2 element
+          document.querySelectorAll<HTMLElement>('.text-clone').forEach(element => {
+            element.textContent = this.originalText;
+          })
+          this.isAnimating = false;
+          this.animationId = null;
+        }
+      };
+      
+      animate();
+    }
+
+    private stopAnimation(): void {
+      document.querySelectorAll<HTMLElement>(this.imageid).forEach(element => {
+        element.classList.add('opacity-0');
+      })
+      
+      document.querySelectorAll<HTMLElement>('.corps').forEach(element => {
+        element.classList.remove('opacity-0');
+        element.classList.add('opacity-100');
+      });
+
+      document.querySelectorAll<HTMLElement>('.menuvideo').forEach(element => {
+        element.classList.remove('opacity-0');
+        element.classList.add('opacity-100');
+      });
+
+      document.querySelectorAll<HTMLElement>('.titre').forEach(element => {
+        element.style.color = '#ffffff';
+      });
+
+      document.querySelectorAll<HTMLElement>('.text-clone').forEach(element => {
+        element.remove()
+      })
+
+      this.textElement.style.opacity = '1';
+
+      if (this.animationId) {
+        cancelAnimationFrame(this.animationId);
+        this.animationId = null;
+      }
+      
+      if (this.timeoutId) {
+        clearTimeout(this.timeoutId);
+        this.timeoutId = null;
+      }
+      
+      // Immediately show original text on mouse leave in the h2 element
+      this.textElement.textContent = this.originalText;
+      this.isAnimating = false;
+    }
+  }
+
+  // Initialize all randomized text elements
+  document.addEventListener('DOMContentLoaded', () => {
+    const elements = document.querySelectorAll<HTMLElement>('.randomized-text');
+    elements.forEach(element => new RandomizedTextEffect(element));
+  });
+
+  // Handle client-side navigation (for Astro's view transitions)
+  document.addEventListener('astro:page-load', () => {
+    const elements = document.querySelectorAll<HTMLElement>('.randomized-text');
+    elements.forEach(element => new RandomizedTextEffect(element));
+  });
+</script>
+
+<style>
+  .randomized-text {
+    display: inline-block;
+    transition: color 0.2s ease;
+  }
+  
+  .randomized-text:hover {
+    color: #000000;
+  }
+</style>

@@ -1,6 +1,12 @@
 ---
-import '../styles/global.css';
+import '../styles/menu.css';
 import Bouton from '../components/Bouton.astro';
+import RandomizedText from '../components/RandomizedText.astro';
+import { Image } from 'astro:assets';
+import image_1 from "../assets/joseph.jpg";
+import image_2 from "../assets/projets.jpg";
+import image_3 from "../assets/links.jpg";
+import video_simon from "../assets/simon.mp4"
 ---
 
 <html lang="en">
@@ -11,19 +17,42 @@ import Bouton from '../components/Bouton.astro';
     <meta name="generator" content={Astro.generator} >
     <title>JOMSC</title>
   </head>
-  <body class="h-full">
-	<div class="flex w-full h-full">
-		<div class="w-1/2 h-full">
-			<h1 class="tracking-[-.02em]">JOSEPH MOUSCADET</h1>
+  <body class="h-full grid">
+	<div class="flex w-full h-full col-start-1 row-start-1 z-30">
+		<!-- Left Column (Video Section) -->
+		<div class="w-1/2 h-screen relative overflow-hidden"> <!-- Changed to relative/overflow-hidden -->
+		<!-- Video Background -->
+		<div class="absolute inset-0 flex items-center justify-center">
+			<video class="min-h-full min-w-full object-cover menuvideo" autoplay muted loop>
+			<source src={video_simon} type="video/mp4">
+			WHERE IS THE VIDEO
+			</video>
 		</div>
-		<div class="w-1/2 h-full flex flex-col">
-			<Bouton name="WHO AM I" link="whoami" class="flex-1 corps"/>
-			<Bouton name="PROJECTS" link="projects" class="flex-1 corps"/>
-			<Bouton name="LINKS / CONTACT" link="contact" class="flex-1 corps"/>
+		
+		<!-- Text Overlay -->
+		<h1 class="titre relative z-40 tracking-[-.02em] p-8 mix-blend-difference">JOSEPH MOUSCADET</h1> <!-- Increased z-index -->
+		</div>
+
+		<!-- Right Column (Buttons) - Unchanged -->
+		<div class="w-1/2 h-screen flex flex-col buttons-group relative z-30">
+		<RandomizedText text="WHO AM I" link="whoami" className="flex-1 corps" duration={500} imageid=".image1" />
+		<RandomizedText text="PROJECTS" link="projects" className="flex-1 corps" duration={500} imageid=".image2" />
+		<RandomizedText text="LINKS / CONTACT" link="contact" className="flex-1 corps" duration={500} imageid=".image3" />
 		</div>
 	</div>
 
-	
-
+	<!-- Background Images (Unchanged) -->
+	<div class="col-start-1 row-start-1 z-20 w-screen h-screen flex items-center justify-center">
+		<Image src={image_1} alt="Me!!!" class="w-1/2 object-cover image-menu opacity-0 image1" />
+	</div>
+	<div class="col-start-1 row-start-1 z-20 w-screen h-screen flex items-center justify-center">
+		<Image src={image_2} alt="PLACEHOLDER" class="w-1/3 object-cover image-menu opacity-0 image2" />
+	</div>
+	<div class="col-start-1 row-start-1 z-20 w-screen h-screen flex items-center justify-center">
+		<Image src={image_3} alt="PLACEHOLDER" class="w-1/3 object-cover image-menu opacity-0 image3" />
+	</div>
   </body>
 </html>
+
+
+		
