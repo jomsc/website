@@ -1,6 +1,14 @@
 @import "tailwindcss";
 
 @font-face {
+    font-family: DataControl;
+    font-style: normal;
+    font-weight: 200 700;
+    font-display: swap;
+    src: url(/src/assets/data-latin.woff2) format("woff2");
+}
+
+@font-face {
     font-family: JetBrains;
     font-style: normal;
     font-weight: 200 700;
@@ -25,11 +33,13 @@ h1 {
   font-size: 4rem;
   text-align: left;
   padding: 0.5rem 1rem;
-  color: #000000;
+  color: #ffffff;
+  font-family: DataControl;
 }
 
 h2 {
     font-size: 3rem;
+    font-family: DataControl;
 }
 
 .corps {

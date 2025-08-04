@@ -106,7 +106,7 @@ import { float } from "three/tsl";
         floatingText.style.left = rect.left + 'px';
         floatingText.style.top = rect.top + 'px';
         floatingText.style.color = '#00ff00';
-        floatingText.style.backgroundColor = '#5e4813';
+        floatingText.style.backgroundColor = '#002a66';
         floatingText.className = 'floating-text text-clone pointer-events-none mix-blend-difference';
         
         //highlightBox.appendChild(floatingText);
@@ -193,6 +193,9 @@ import { float } from "three/tsl";
   document.addEventListener('astro:page-load', () => {
     const elements = document.querySelectorAll<HTMLElement>('.randomized-text');
     elements.forEach(element => new RandomizedTextEffect(element));
+    
+
+
   });
 </script>
 

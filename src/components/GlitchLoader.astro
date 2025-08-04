@@ -1,0 +1,67 @@
+---
+// GlitchLoader.astro
+export interface Props {
+  videoSrc: string;
+  videoPoster?: string;
+  minDuration?: number;
+  fadeDuration?: number;
+  loadingText?: string;
+}
+
+const { 
+  videoSrc, 
+  videoPoster,
+  minDuration = 500,
+  fadeDuration = 500,
+  loadingText = "LOADING..."
+} = Astro.props;
+---
+
+<div 
+  class="glitch-container"
+  data-min-duration={minDuration}
+  data-fade-duration={fadeDuration}
+>
+  <canvas id="glitch-canvas" class="glitch-canvas"></canvas>
+  <video 
+    id="glitch-video" 
+    class="glitch-video" 
+    autoplay muted loop
+    poster={videoPoster}
+  >
+    <source src={videoSrc} type="video/mp4">
+  </video>
+  <div class="glitch-loading-text">{loadingText}</div>
+</div>
+
+<style>
+  @import '../styles/glitch-loader.css';
+</style>
+
+<script>
+  import { GlitchLoader } from '../scripts/GlitchLoader.js';
+  import * as THREE from 'three';
+  
+  // Wait for Three.js to load, then initialize
+  const initGlitchLoader = () => {
+    if (typeof THREE !== 'undefined') {
+      const container = document.querySelector('.glitch-container') as HTMLElement;
+      const options = {
+        minDuration: parseInt(container?.dataset.minDuration || '500'),
+        fadeDuration: parseInt(container?.dataset.fadeDuration || '500')
+      };
+      
+      new GlitchLoader(options);
+    } else {
+      // Retry if Three.js isn't loaded yet
+      setTimeout(initGlitchLoader, 100);
+    }
+  };
+  
+  // Initialize when DOM is ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initGlitchLoader);
+  } else {
+    initGlitchLoader();
+  }
+</script>

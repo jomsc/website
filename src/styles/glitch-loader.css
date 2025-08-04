@@ -1,0 +1,55 @@
+.glitch-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.glitch-canvas {
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  z-index: 10;
+  transition: opacity 0.5s ease-out;
+}
+
+.glitch-video {
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  z-index: 1;
+  opacity: 0;
+  transition: opacity 0.5s ease-in-out;
+}
+
+.glitch-video.loaded {
+  opacity: 1;
+}
+
+.glitch-loading-text {
+  position: absolute;
+  bottom: 50px;
+  left: 50px;
+  color: #00ff41;
+  font-size: 18px;
+  font-weight: bold;
+  z-index: 20;
+  text-shadow: 0 0 10px #00ff41;
+  letter-spacing: 2px;
+  transition: opacity 0.5s ease-out;
+  font-family: DataControl;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .glitch-loading-text {
+    bottom: 30px;
+    left: 30px;
+    font-size: 16px;
+  }
+}

@@ -1,6 +1,7 @@
 ---
 import '../styles/global.css';
 import Social from '../components/Social.astro';
+import GlitchLoader from '../components/GlitchLoader.astro';
 ---
 <html lang="en">
   <head>
@@ -19,7 +20,9 @@ import Social from '../components/Social.astro';
 		<div class="corps w-1/2 h-full flex flex-col">
 			<h2>LINKS / CONTACT</h2>
 
-            <Social platform="github" username="jomsc">
+        <Social platform="github" username="jomsc">
+
+          <GlitchLoader videoSrc="../assets/simon.mp4" minDuration={500} loadingText="LOADING..." />
 		</div>
 	</div>
 
