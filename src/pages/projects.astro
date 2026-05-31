@@ -1,6 +1,7 @@
 ---
-import '../styles/global.css';
-import Bouton from '../components/Bouton.astro';
+import '../styles/projects.css';
+import '../components/ProjectPage.astro'
+import ProjectPage from '../components/ProjectPage.astro';
 ---
 
 <html lang="en">
@@ -19,9 +20,13 @@ import Bouton from '../components/Bouton.astro';
 		</div>
 		<div class="corps w-1/2 h-full flex flex-col">
 			<h2>PROJECTS</h2>
-            <p class="texte">
-              <a href="/projects/mp01/">P#01 : Unfolding Flowers</a>
-            </p>
+      <div>
+        <ProjectPage name="01 — Unfolding Flowers" class="projet" />
+        <ProjectPage name="02 — ODYSSWEI" class="projet" />
+        <p class="texte">
+          <a href="/projects/p01/">P#01 : Unfolding Flowers</a>
+        </p>
+      </div>
 		</div>
 	</div>
 
