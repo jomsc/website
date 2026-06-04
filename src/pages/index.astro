@@ -17,6 +17,7 @@ import GlitchLoader from '../components/GlitchLoader.astro';
     <meta name="generator" content={Astro.generator} >
     <title>JOMSC</title>
   </head>
+  <GlitchLoader />
   <body class="h-full grid">
 	<div class="flex w-full h-full col-start-1 row-start-1 z-30">
 		<!-- Left Column (Video Section) -->
@@ -24,11 +25,10 @@ import GlitchLoader from '../components/GlitchLoader.astro';
 			<!-- Video Background -->
 			<div class="absolute inset-0 flex items-center justify-center menuvideo">			
 				<div class="h-full w-full">
-					<GlitchLoader
-						videoSrc={video_simon}
-						minDuration={2000}
-						loadingText="LOADING..."
-					/>
+					<video class="min-h-full min-w-full object-cover menuvideo" autoplay muted loop>
+						<source src={video_simon} type="video/mp4">
+						WHERE IS THE VIDEO
+					</video>
 				</div>
 			</div>
 			

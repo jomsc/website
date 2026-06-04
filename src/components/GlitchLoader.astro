@@ -1,67 +1,181 @@
 ---
 // GlitchLoader.astro
-export interface Props {
-  videoSrc: string;
-  videoPoster?: string;
-  minDuration?: number;
-  fadeDuration?: number;
-  loadingText?: string;
-}
-
-const { 
-  videoSrc, 
-  videoPoster,
-  minDuration = 500,
-  fadeDuration = 500,
-  loadingText = "LOADING..."
-} = Astro.props;
 ---
 
-<div 
-  class="glitch-container"
-  data-min-duration={minDuration}
-  data-fade-duration={fadeDuration}
->
-  <canvas id="glitch-canvas" class="glitch-canvas"></canvas>
-  <video 
-    id="glitch-video" 
-    class="glitch-video" 
-    autoplay muted loop
-    poster={videoPoster}
-  >
-    <source src={videoSrc} type="video/mp4">
-  </video>
-  <div class="glitch-loading-text">{loadingText}</div>
-</div>
-
-<style>
-  @import '../styles/glitch-loader.css';
-</style>
-
 <script>
-  import { GlitchLoader } from '../scripts/GlitchLoader.js';
-  import * as THREE from 'three';
-  
-  // Wait for Three.js to load, then initialize
-  const initGlitchLoader = () => {
-    if (typeof THREE !== 'undefined') {
-      const container = document.querySelector('.glitch-container') as HTMLElement;
-      const options = {
-        minDuration: parseInt(container?.dataset.minDuration || '500'),
-        fadeDuration: parseInt(container?.dataset.fadeDuration || '500')
-      };
-      
-      new GlitchLoader(options);
-    } else {
-      // Retry if Three.js isn't loaded yet
-      setTimeout(initGlitchLoader, 100);
-    }
-  };
-  
-  // Initialize when DOM is ready
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initGlitchLoader);
-  } else {
-    initGlitchLoader();
+// ═══════════════════════════════════════════════
+// ⚙️  TUNEABLE PARAMETERS
+// ═══════════════════════════════════════════════
+
+const LOAD_DURATION_MS  = 1800;
+const BAR_THICKNESS     = 4;
+const EXIT_DURATION_MS  = 800;
+const PLATEAU_FRACTION  = 0.18;
+
+const BG_COLOR  = "#eb7434";
+const BAR_COLOR = "#000000";
+
+// ═══════════════════════════════════════════════
+// Setup
+// ═══════════════════════════════════════════════
+
+if (sessionStorage.getItem("gl-seen")) {
+} else {
+  sessionStorage.setItem("gl-seen", "1");
+
+  const W = window.innerWidth;
+  const H = window.innerHeight;
+
+  const root   = document.createElement("div");
+  root.id = "gl-root";
+  Object.assign(root.style, {
+    position: "fixed", inset: "0",
+    zIndex: "99999", pointerEvents: "all", overflow: "hidden",
+  });
+
+  const canTop = document.createElement("canvas");
+  const canBot = document.createElement("canvas");
+  for (const c of [canTop, canBot]) {
+    Object.assign(c.style, { position: "absolute", top: "0", left: "0", display: "block" });
   }
+
+  const NS  = "http://www.w3.org/2000/svg";
+  const svg = document.createElementNS(NS, "svg");
+  Object.assign(svg.style, {
+    position: "absolute", inset: "0",
+    width: "100%", height: "100%", overflow: "visible", pointerEvents: "none",
+  });
+
+  const trackEl = document.createElementNS(NS, "path");
+  const fillEl  = document.createElementNS(NS, "path");
+  svg.append(trackEl, fillEl);
+  root.append(canTop, canBot, svg);
+  document.body.insertBefore(root, document.body.firstChild);
+
+  // ═══════════════════════════════════════════════
+  // Geometry — exactly 4 points = 3 segments
+  // ═══════════════════════════════════════════════
+  //
+  //  P0 (0, H)  →  P1 (x0, yMid)  →  P2 (x1, yMid)  →  P3 (W, 0)
+  //       lower diagonal           plateau             upper diagonal
+  //
+
+  const x0   = W * (0.5 - PLATEAU_FRACTION / 2);
+  const x1   = W * (0.5 + PLATEAU_FRACTION / 2);
+  const yMid = H * 0.5;
+
+  // The 4 exact path points
+  const pts: [number, number][] = [
+    [0,  H],
+    [x0, yMid],
+    [x1, yMid],
+    [W,  0],
+  ];
+
+  function buildPathD(): string {
+    return pts.map(([x, y], i) => `${i === 0 ? "M" : "L"}${x.toFixed(2)},${y.toFixed(2)}`).join(" ");
+  }
+
+  // Interpolate y for a given x along the exact 3-segment path
+  function yAt(x: number): number {
+    if (x <= x0) return H   - (H - yMid) * (x / x0);
+    if (x >= x1) return yMid - yMid      * ((x - x1) / (W - x1));
+    return yMid;
+  }
+
+  // ═══════════════════════════════════════════════
+  // Draw canvas halves + border stroke
+  // ═══════════════════════════════════════════════
+
+  const BORDER_WIDTH = BAR_THICKNESS / 2;
+
+  function tracePath(ctx: CanvasRenderingContext2D) {
+    ctx.moveTo(pts[0][0], pts[0][1]);
+    for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i][0], pts[i][1]);
+  }
+
+  function drawHalf(canvas: HTMLCanvasElement, side: "top" | "bot") {
+    canvas.width  = W;
+    canvas.height = H;
+    const ctx = canvas.getContext("2d")!;
+
+    // — filled polygon —
+    ctx.beginPath();
+    tracePath(ctx);
+    if (side === "top") {
+      ctx.lineTo(W + 1, -H - 1);
+      ctx.lineTo(-1,    -H - 1);
+    } else {
+      ctx.lineTo(W + 1,  H * 2 + 1);
+      ctx.lineTo(-1,     H * 2 + 1);
+    }
+    ctx.closePath();
+    ctx.fillStyle = BG_COLOR;
+    ctx.fill();
+
+    // — border stroke along the cut edge —
+    ctx.beginPath();
+    tracePath(ctx);
+    ctx.strokeStyle = BAR_COLOR;
+    ctx.lineWidth   = BORDER_WIDTH;
+    ctx.lineCap     = "round";
+    ctx.lineJoin    = "round";
+    ctx.stroke();
+  }
+
+  drawHalf(canTop, "top");
+  drawHalf(canBot, "bot");
+
+  // ═══════════════════════════════════════════════
+  // Progress bar (SVG)
+  // ═══════════════════════════════════════════════
+
+  const pathD = buildPathD();
+
+  trackEl.setAttribute("d", pathD);
+  trackEl.style.cssText = `fill:none; stroke:${BG_COLOR}; stroke-width:${BAR_THICKNESS}; stroke-linecap:round; stroke-linejoin:round;`;
+
+  fillEl.setAttribute("d", pathD);
+  fillEl.style.cssText  = `fill:none; stroke:${BAR_COLOR}; stroke-width:${BAR_THICKNESS}; stroke-linecap:round; stroke-linejoin:round;`;
+
+  const totalLength = (fillEl as unknown as SVGGeometryElement).getTotalLength();
+  fillEl.style.strokeDasharray  = `${totalLength}`;
+  fillEl.style.strokeDashoffset = `${totalLength}`;
+
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    fillEl.style.transition = `stroke-dashoffset ${LOAD_DURATION_MS}ms linear`;
+    fillEl.style.strokeDashoffset = "0";
+  }));
+
+  // ═══════════════════════════════════════════════
+  // Exit animation
+  // ═══════════════════════════════════════════════
+
+  function easeInOut(t: number): number {
+    return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+  }
+
+  function runExit() {
+    svg.style.display = "none";
+    const startTime = performance.now();
+
+    function animate(now: number) {
+      const t = Math.min((now - startTime) / EXIT_DURATION_MS, 1);
+      const e = easeInOut(t);
+      canTop.style.transform = `translateY(${-H * e}px)`;
+      canBot.style.transform = `translateY(${ H * e}px)`;
+      if (t < 1) requestAnimationFrame(animate);
+      else root.remove();
+    }
+    requestAnimationFrame(animate);
+  }
+
+  let barDone = false, pageDone = false;
+  function checkDone() { if (barDone && pageDone) runExit(); }
+
+  setTimeout(() => { barDone = true; checkDone(); }, LOAD_DURATION_MS);
+
+  if (document.readyState === "complete") { pageDone = true; }
+  else window.addEventListener("load", () => { pageDone = true; checkDone(); });
+}
 </script>
