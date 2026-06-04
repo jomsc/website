@@ -8,56 +8,319 @@ import image_3 from "../assets/links.jpg";
 import video_simon from "../assets/simon.mp4"
 import GlitchLoader from '../components/GlitchLoader.astro';
 ---
-
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="generator" content={Astro.generator} >
-    <title>JOMSC</title>
-  </head>
+<head>
+  <meta charset="utf-8" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="generator" content={Astro.generator} >
+  <title>JOMSC</title>
+</head>
+<body class="h-full grid">
   <GlitchLoader />
-  <body class="h-full grid">
-	<div class="flex w-full h-full col-start-1 row-start-1 z-30">
-		<!-- Left Column (Video Section) -->
-		<div class="w-1/2 h-screen relative overflow-hidden"> <!-- Changed to relative/overflow-hidden -->
-			<!-- Video Background -->
-			<div class="absolute inset-0 flex items-center justify-center menuvideo">			
-				<div class="h-full w-full">
-					<video class="min-h-full min-w-full object-cover menuvideo" autoplay muted loop>
-						<source src={video_simon} type="video/mp4">
-						WHERE IS THE VIDEO
-					</video>
-				</div>
-			</div>
-			
-			
-			<!-- Text Overlay -->
-			<h1 class="titre relative z-40 tracking-[-.02em] p-8 mix-blend-difference">JOSEPH MOUSCADET</h1> <!-- Increased z-index -->
-		</div>
 
-		<!-- Right Column (Buttons) - Unchanged -->
-		<div class="w-1/2 h-screen flex flex-col buttons-group relative z-30">
-		<RandomizedText text="WHO AM I ?" link="whoami" className="flex-1 corps" duration={500} imageid=".image1" />
-		<RandomizedText text="PROJECTS" link="projects" className="flex-1 corps" duration={500} imageid=".image2" />
-		<RandomizedText text="BLOG" link="projects" className="flex-1 corps" duration={500} imageid=".image2" />
-		<RandomizedText text="LINKS / CONTACT" link="contact" className="flex-1 corps" duration={500} imageid=".image3" />
-		</div>
-	</div>
+  <div id="main-layout" class="flex w-full h-full col-start-1 row-start-1 z-30">
 
-	<!-- Background Images (Unchanged) -->
-	<div class="col-start-1 row-start-1 z-20 w-screen h-screen flex items-center justify-center">
-		<Image src={image_1} alt="Me!!!" class="w-1/2 object-cover image-menu opacity-0 image1" />
-	</div>
-	<div class="col-start-1 row-start-1 z-20 w-screen h-screen flex items-center justify-center">
-		<Image src={image_2} alt="PLACEHOLDER" class="w-1/3 object-cover image-menu opacity-0 image2" />
-	</div>
-	<div class="col-start-1 row-start-1 z-20 w-screen h-screen flex items-center justify-center">
-		<Image src={image_3} alt="PLACEHOLDER" class="w-1/3 object-cover image-menu opacity-0 image3" />
-	</div>
-  </body>
+    <!-- Video Section -->
+    <div id="video-col" class="relative overflow-hidden">
+      <div class="absolute inset-0 flex items-center justify-center menuvideo">
+        <div class="h-full w-full">
+          <video class="min-h-full min-w-full object-cover object-center menuvideo" autoplay muted loop playsinline>
+            <source src={video_simon} type="video/mp4">
+            WHERE IS THE VIDEO
+          </video>
+        </div>
+      </div>
+      <h1 class="titre relative z-40 tracking-[-.02em] p-8 mix-blend-difference">JOSEPH MOUSCADET</h1>
+    </div>
+
+    <!-- Buttons -->
+    <div id="buttons-group" class="flex buttons-group relative z-30">
+      <a id="btn-0" class="btn-item corps" data-original-text="WHO AM I ?"       data-duration="500" data-link="whoami"   data-imageid=".image1" href="/whoami/"><h2>WHO AM I ?</h2></a>
+      <a id="btn-1" class="btn-item corps" data-original-text="PROJECTS"         data-duration="500" data-link="projects" data-imageid=".image2" href="/projects/"><h2>PROJECTS</h2></a>
+      <a id="btn-2" class="btn-item corps" data-original-text="BLOG"             data-duration="500" data-link="projects" data-imageid=".image2" href="/projects/"><h2>BLOG</h2></a>
+      <a id="btn-3" class="btn-item corps" data-original-text="LINKS / CONTACT"  data-duration="500" data-link="contact"  data-imageid=".image3" href="/contact/"><h2>LINKS / CONTACT</h2></a>
+    </div>
+  </div>
+
+  <!-- Background Images — z-40: above buttons (z-30) but below clone (z-50) -->
+  <div class="col-start-1 row-start-1 z-40 w-screen h-screen flex items-center justify-center pointer-events-none">
+    <Image src={image_1} alt="Me!!!" class="w-1/2 object-cover image-menu opacity-0 image1" />
+  </div>
+  <div class="col-start-1 row-start-1 z-40 w-screen h-screen flex items-center justify-center pointer-events-none">
+    <Image src={image_2} alt="PLACEHOLDER" class="w-1/3 object-cover image-menu opacity-0 image2" />
+  </div>
+  <div class="col-start-1 row-start-1 z-40 w-screen h-screen flex items-center justify-center pointer-events-none">
+    <Image src={image_3} alt="PLACEHOLDER" class="w-1/3 object-cover image-menu opacity-0 image3" />
+  </div>
+</body>
 </html>
 
+<style>
+  .menuvideo,
+  .btn-item,
+  .image-menu {
+    transition: opacity 0.3s ease;
+  }
 
-		
+  /* ── Mobile layout ── */
+  #main-layout {
+    flex-direction: column;
+    overflow: hidden;
+    height: 100vh;
+  }
+
+  #video-col {
+    width: 100vw;
+    /* fill all remaining height above the buttons row */
+    flex: 1 1 0;
+    min-height: 0;
+    /* crop sides so video fills height fully */
+    overflow: hidden;
+  }
+
+  #buttons-group {
+    width: 100vw;
+    flex-direction: row;
+    flex-shrink: 0;
+    /* scroll only inside the buttons row */
+    overflow-x: auto;
+    overflow-y: visible;
+    scrollbar-width: none;
+  }
+  #buttons-group::-webkit-scrollbar { display: none; }
+
+  .btn-item {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: flex-start;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: flex 0.15s ease-out, opacity 0.3s ease, background-color 0.2s ease;
+    /* smaller border + text on mobile */
+    border-width: 0px 0px 1px 1px;
+    padding: 0.4rem 0.7rem;
+  }
+
+  .btn-item h2 {
+    font-size: 1.6rem;
+    font-family: DataControl, sans-serif;
+  }
+
+  /* ── Desktop overrides ── */
+  @media (min-width: 768px) {
+    #main-layout {
+      flex-direction: row;
+      overflow: visible;
+    }
+    #video-col {
+      width: 50%;
+      height: 100vh;
+      flex-shrink: 0;
+    }
+    #buttons-group {
+      width: 50%;
+      height: 100vh;
+      flex-direction: column;
+      overflow: visible;
+    }
+    .btn-item {
+      flex: 1 1 0;
+      white-space: normal;
+      align-items: flex-start;
+      width: 100%;
+      padding: 1rem 2rem;
+      border-width: 0px 0px 1px 1px;
+    }
+    .btn-item h2 {
+      font-size: 3rem;
+    }
+  }
+</style>
+
+<script>
+  // ⚙️ Sizing (desktop)
+  const MAX_PERCENT = 40;
+  const MIN_PERCENT = 10;
+
+  const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()-_[]{}+=?';
+  function randChar() { return CHARS[Math.floor(Math.random() * CHARS.length)]; }
+
+  // Per-button animation state
+  const animState = new Map<HTMLElement, { id: number | null }>();
+
+  // ⚙️ Idle timeout: milliseconds of no movement before hover exits
+  const IDLE_TIMEOUT_MS = 2000;
+  let idleTimer: ReturnType<typeof setTimeout> | null = null;
+  let activeBtn: HTMLElement | null = null;
+
+  function clearIdle() {
+    if (idleTimer) { clearTimeout(idleTimer); idleTimer = null; }
+  }
+
+  function resetIdle() {
+    clearIdle();
+    if (activeBtn) {
+      idleTimer = setTimeout(() => {
+        if (activeBtn) {
+          activeBtn.dispatchEvent(new MouseEvent('mouseleave', { bubbles: true }));
+          activeBtn = null;
+        }
+      }, IDLE_TIMEOUT_MS);
+    }
+  }
+
+  // Separate continuous tracking loop — runs after text animation finishes
+  // so the clone keeps following the h2 position through flex resizes
+  let trackingId: number | null = null;
+
+  function startTracking(h2: HTMLElement, clone: HTMLElement) {
+    if (trackingId) cancelAnimationFrame(trackingId);
+    function loop() {
+      const rect = h2.getBoundingClientRect();
+      clone.style.left = rect.left + 'px';
+      clone.style.top  = rect.top  + 'px';
+      trackingId = requestAnimationFrame(loop);
+    }
+    trackingId = requestAnimationFrame(loop);
+  }
+
+  function stopTracking() {
+    if (trackingId) { cancelAnimationFrame(trackingId); trackingId = null; }
+  }
+
+  function startTextAnim(btn: HTMLElement) {
+    const h2 = btn.querySelector('h2') as HTMLElement;
+    const original = btn.dataset.originalText || h2.textContent || '';
+    const duration = parseInt(btn.dataset.duration || '500');
+    const startTime = Date.now();
+
+    document.querySelectorAll('.text-clone').forEach(el => el.remove());
+    h2.style.opacity = '0';
+
+    const clone = document.createElement('h2');
+    clone.className = 'floating-text text-clone pointer-events-none mix-blend-difference';
+    Object.assign(clone.style, {
+      position:        'fixed',
+      zIndex:          '50',
+      color:           '#00ff00',
+      backgroundColor: '#002a66',
+      pointerEvents:   'none',
+    });
+    document.body.appendChild(clone);
+
+    // Tracking loop starts immediately and never stops until stopTextAnim
+    startTracking(h2, clone);
+
+    const state = { id: null as number | null };
+    animState.set(btn, state);
+
+    function animate() {
+      const progress = Math.min((Date.now() - startTime) / duration, 1);
+      const keepUpTo = Math.ceil(original.length * progress);
+      const text = original.slice(0, keepUpTo) +
+        original.slice(keepUpTo).split('').map(c => (c === ' ' || c === '/') ? c : randChar()).join('');
+      clone.textContent = text;
+      if (progress < 1) {
+        state.id = requestAnimationFrame(animate);
+      } else {
+        state.id = null;
+        // tracking loop keeps running independently after text settles
+      }
+    }
+
+    state.id = requestAnimationFrame(animate);
+  }
+
+  function stopTextAnim(btn: HTMLElement) {
+    const h2 = btn.querySelector('h2') as HTMLElement;
+    h2.style.opacity = '1';
+    const state = animState.get(btn);
+    if (state?.id) { cancelAnimationFrame(state.id); state.id = null; }
+    stopTracking();
+    document.querySelectorAll('.text-clone').forEach(el => el.remove());
+  }
+
+  function init() {
+    const isDesktop = window.matchMedia("(min-width: 768px) and (pointer: fine)").matches;
+    const group     = document.getElementById("buttons-group")!;
+    const videocol  = document.getElementById("video-col")!;
+    const buttons   = Array.from(group.querySelectorAll<HTMLElement>(".btn-item"));
+
+    function onEnter(btn: HTMLElement) {
+      clearIdle();
+      activeBtn = btn;
+      const imageId = btn.dataset.imageid || '';
+      document.querySelectorAll<HTMLElement>(imageId).forEach(el => {
+        el.style.opacity = '1';
+      });
+      // Fade ALL buttons (clone takes over visually)
+      buttons.forEach(b => { b.style.opacity = '0'; });
+      videocol.querySelectorAll<HTMLElement>('.menuvideo').forEach(el => {
+        el.style.opacity = '0';
+      });
+      document.querySelectorAll<HTMLElement>('.titre').forEach(el => {
+        el.style.color = '#000000';
+      });
+      startTextAnim(btn);
+      resetIdle();
+    }
+
+    function onLeave(btn: HTMLElement) {
+      clearIdle();
+      activeBtn = null;
+      const imageId = btn.dataset.imageid || '';
+      document.querySelectorAll<HTMLElement>(imageId).forEach(el => {
+        el.style.opacity = '0';
+      });
+      buttons.forEach(b => {
+        b.style.opacity = '1';
+        b.style.backgroundColor = '';
+      });
+      videocol.querySelectorAll<HTMLElement>('.menuvideo').forEach(el => {
+        el.style.opacity = '1';
+      });
+      document.querySelectorAll<HTMLElement>('.titre').forEach(el => {
+        el.style.color = '#ffffff';
+      });
+      stopTextAnim(btn);
+    }
+
+    buttons.forEach(btn => {
+      btn.addEventListener('mouseenter', () => onEnter(btn));
+      btn.addEventListener('mouseleave', () => onLeave(btn));
+    });
+
+    if (!isDesktop) return;
+
+    function reset() {
+      buttons.forEach(btn => { btn.style.flex = "1 1 0"; });
+    }
+
+    function applyGrow(mouseY: number) {
+      const centres = buttons.map(btn => {
+        const r = btn.getBoundingClientRect();
+        return r.top + r.height / 2;
+      });
+      const dists   = centres.map(cy => Math.abs(cy - mouseY));
+      const maxDist = Math.max(...dists) || 1;
+      const raw     = dists.map(d => {
+        const norm = d / maxDist;
+        return MAX_PERCENT - norm * (MAX_PERCENT - MIN_PERCENT);
+      });
+      const sum = raw.reduce((a, b) => a + b, 0);
+      buttons.forEach((btn, i) => {
+        btn.style.flex = `${((raw[i] / sum) * 100).toFixed(3)} 1 0`;
+      });
+    }
+
+    document.addEventListener("mousemove", (e: MouseEvent) => {
+      applyGrow(e.clientY);
+      resetIdle(); // reset 2s idle timer on every movement
+    });
+    document.addEventListener("mouseleave", reset);
+  }
+
+  document.addEventListener("DOMContentLoaded", init);
+  document.addEventListener("astro:page-load",  init);
+</script>
