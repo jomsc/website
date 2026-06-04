@@ -6,6 +6,8 @@ export interface ProjectMeta {
   slug: string;
   title: string;
   accent?: string;
+  summary?: string;  // first paragraph of the project, shown on the card
+  draft?: boolean;   // true = greyed-out, non-clickable "coming soon" card
 }
 
 interface DrawerOpts {
@@ -17,7 +19,6 @@ interface DrawerOpts {
 
 export function initDrawer({ drawer, right, left, projects }: DrawerOpts) {
   let index = 0;
-  let wheelLock = false;
   let activeSlug: string | null = null;
 
   // Build cards once.
@@ -27,8 +28,19 @@ export function initDrawer({ drawer, right, left, projects }: DrawerOpts) {
     el.className = 'card';
     el.dataset.slug = p.slug;
     if (p.accent) el.style.setProperty('--accent', p.accent);
-    el.innerHTML = `<span class="card__tab"></span><span class="card__name">${p.title}</span>`;
+    if (p.draft) el.classList.add('is-draft');
+
+    const summary = p.summary ? `<span class="card__summary">${p.summary}</span>` : '';
+    el.innerHTML =
+      `<span class="card__tab"></span>` +
+      `<span class="card__body">` +
+        `<span class="card__name">${p.title}</span>` +
+        summary +
+      `</span>` +
+      `<span class="card__soon">coming soon…</span>`;
+
     el.addEventListener('click', () => {
+      if (p.draft) return;            // drafts are not selectable
       if (i === index) selectProject(p);
       else go(i);
     });
@@ -39,14 +51,16 @@ export function initDrawer({ drawer, right, left, projects }: DrawerOpts) {
   function render() {
     for (let i = 0; i < cards.length; i++) {
       const el = cards[i];
-      const offset = i - index;
-      const abs = Math.abs(offset);
+      const offset = i - index;          // <0 = already passed, 0 = front, >0 = behind/above
       el.style.setProperty('--offset', String(offset));
-      el.style.setProperty('--abs', String(abs));
+      el.style.setProperty('--abs', String(Math.abs(offset)));
+      // Only cards at/after the current one form the climbing stack.
+      // Passed cards (negative) get clamped so they tuck behind, not in front.
+      el.style.setProperty('--depth', String(Math.max(0, offset)));
       el.classList.toggle('is-front', i === index);
-      el.style.zIndex = String(100 - abs);
-      el.style.opacity = abs > 3 ? '0' : '';
-      el.style.pointerEvents = abs > 3 ? 'none' : '';
+      el.classList.toggle('is-passed', offset < 0);
+      // Nearer the front = higher in the stack. Front card on top.
+      el.style.zIndex = String(1000 - Math.abs(offset));
     }
   }
 
@@ -87,15 +101,18 @@ export function initDrawer({ drawer, right, left, projects }: DrawerOpts) {
     }
   }
 
-  // Shuffle with wheel (throttled) and arrow keys.
-  right.addEventListener('wheel', (e) => {
-    e.preventDefault();
-    if (wheelLock) return;
-    wheelLock = true;
-    go(index + (e.deltaY > 0 ? 1 : -1));
-    setTimeout(() => (wheelLock = false), 160);
-  }, { passive: false });
+  // Shuffle based on the pointer's vertical position over the panel.
+  // Top of the panel = first card, bottom = last card.
+  right.addEventListener('mousemove', (e) => {
+    const rect = right.getBoundingClientRect();
+    // fraction 0..1 of how far down the panel the cursor is
+    const frac = (e.clientY - rect.top) / rect.height;
+    const clamped = Math.min(0.999, Math.max(0, frac));
+    const target = Math.floor(clamped * projects.length);
+    if (target !== index) go(target);
+  });
 
+  // Keep keyboard support.
   window.addEventListener('keydown', (e) => {
     if (e.key === 'ArrowDown' || e.key === 'ArrowRight') go(index + 1);
     if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') go(index - 1);

@@ -1,8 +1,6 @@
 /* ===== projects.css =====
-   Drawer + card-stack styling, matched to the site's grey/industrial system:
-   flat fills, hard 1px black borders, no radii, DataControl + JetBrains.
+   Drawer + card-stack styling, matched to the site's grey/industrial system.
    Palette: #a9a9a9 page · #d1d1d1 panel · #929292 card. */
-
 :root {
   --card-w: clamp(180px, 20vw, 280px);
   --card-h: clamp(240px, 28vw, 400px);
@@ -35,64 +33,115 @@
 }
 .right.is-collapsed .drawer { transform: scale(.88); }
 
-/* CARDS — flat grey folders with hard black borders */
+/* CARDS — turned edge-on so each shows only a thin profile.
+   --depth = how far behind the front this card is (0 = front).
+   Cards are rotated hard around Y so the face is nearly perpendicular to the
+   screen; as they recede they climb upward and push back. */
 .card {
   position: absolute;
   width: var(--card-w);
   height: var(--card-h);
   --offset: 0;
   --abs: 0;
+  --depth: 0;
   padding: 1rem;
   background-color: #929292;
   border: 1px solid var(--line);
-  border-radius: 0;
+  border-radius: 12px;
   color: #000000;
   text-align: left;
   cursor: pointer;
   display: flex;
-  align-items: flex-end;
+  flex-direction: column;
+  justify-content: flex-end;
   font-family: JetBrains;
-  /* flat, directional shadow rather than a soft blurred one */
-  box-shadow: calc(var(--abs) * -2px) calc(var(--abs) * 3px) 0 rgba(0, 0, 0, .18);
+  transform-origin: center center;
+  box-shadow: 0 10px 24px -10px rgba(0, 0, 0, .5);
   will-change: transform;
+  /* Non-front cards are turned ~72deg around Y (thin profile) and stacked
+     upward/back by depth. */
   transform:
-    translateX(calc(var(--offset) * 14px))
-    translateY(calc(var(--abs) * 8px))
-    translateZ(calc(var(--abs) * -90px))
-    rotateY(-22deg) rotateX(4deg);
+    translateY(calc(var(--depth) * -30px))
+    translateZ(calc(var(--depth) * -55px))
+    rotateY(-72deg)
+    scale(calc(1 - var(--depth) * 0.04));
   transition: transform .5s cubic-bezier(.16, 1, .3, 1), opacity .4s ease,
               background-color .3s ease;
 }
+
 /* the folder tab */
 .card__tab {
   position: absolute;
   top: -19px;
-  left: -1px;
+  left: 18px;
   width: 86px;
-  height: 19px;
+  height: 20px;
   background-color: #929292;
   border: 1px solid var(--line);
   border-bottom: none;
+  border-radius: 8px 8px 0 0;
 }
+
+/* card text */
+.card__body { display: block; }
 .card__name {
   font-family: DataControl;
   font-size: 1.05rem;
   line-height: 1.05;
   letter-spacing: -.01em;
   text-transform: uppercase;
+  display: block;
 }
-.card:not(.is-front) { opacity: .9; }
+.card__summary {
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin-top: .5rem;
+  font-family: JetBrains;
+  font-size: .8rem;
+  line-height: 1.35;
+  color: #222;
+}
+.card__soon {
+  position: absolute;
+  inset: 0;
+  display: none;
+  place-items: center;
+  font-family: DataControl;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  background-color: rgba(146, 146, 146, .85);
+  border-radius: 12px;
+}
+
+/* The front card faces the viewer fully (flat, readable) and is highlighted. */
 .card.is-front {
   background-color: #d1d1d1;
-  transform: translateZ(60px) rotateY(-14deg) rotateX(2deg) scale(1.02);
+  transform: translateY(0) translateZ(0) rotateY(0deg) scale(1.04);
+  box-shadow: 0 18px 30px -10px rgba(0, 0, 0, .55);
 }
 .card.is-front .card__tab { background-color: #d1d1d1; }
+
+/* Passed cards slide down and out. */
+.card.is-passed {
+  transform: translateY(120%) translateZ(60px) rotateY(0deg) scale(1.04);
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Slight fade with depth (passed/front excluded). */
+.card:not(.is-front):not(.is-passed) { opacity: calc(1 - var(--depth) * .03); }
+
+/* Draft / coming-soon cards: greyed out, not interactive. */
+.card.is-draft { filter: grayscale(1) brightness(.8); cursor: default; }
+.card.is-draft:hover .card__soon { display: grid; }
 
 /* LEFT panel = project content (matches .corps surface) */
 .left {
   flex: 1 1 auto;
   min-width: 0;
-  height: 100%;
+  min-height: 0;
   overflow-y: auto;
   transition: opacity .4s ease;
 }

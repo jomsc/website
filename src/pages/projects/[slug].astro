@@ -1,23 +1,23 @@
 ---
-import { getCollection, getEntry } from 'astro:content';
+import { getCollection, getEntry, render } from 'astro:content';
 import '../../styles/projects.css';
 
 export async function getStaticPaths() {
   const projects = await getCollection('projects');
-  return projects.map((p) => ({ params: { slug: p.slug } }));
+  // Astro 6: entry.id is now the slug.
+  return projects.map((p) => ({ params: { slug: p.id } }));
 }
 
 const { slug } = Astro.params;
 const entry = await getEntry('projects', slug!);
-const { Content } = await entry!.render();
+// Astro 6: render() is a standalone import, not entry.render().
+const { Content } = await render(entry!);
 ---
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width" />
   <title>{entry!.data.title}</title>
-  <!-- model-viewer only loads on pages that actually use a model;
-       the import is cheap and the component lazy-loads the WASM/3D itself -->
   <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js"></script>
 </head>
 <body>

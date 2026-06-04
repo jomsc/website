@@ -1,11 +1,34 @@
 ---
 import { getCollection } from 'astro:content';
+import '../styles/global.css';   // brings in Tailwind + @font-face (DataControl/JetBrains)
 import '../styles/projects.css';
 
 // Pull all projects, sorted by their `order` frontmatter.
-const projects = (await getCollection('projects'))
-  .sort((a, b) => a.data.order - b.data.order)
-  .map((p) => ({ slug: p.slug, title: p.data.title, accent: p.data.accent }));
+const entries = (await getCollection('projects'))
+  .sort((a, b) => a.data.order - b.data.order);
+
+// The card blurb is the first real paragraph of each project's markdown.
+function firstParagraph(body: string | undefined): string {
+  if (!body) return '';
+  for (const raw of body.split('\n')) {
+    const line = raw.trim();
+    if (!line) continue;
+    if (line.startsWith('#')) continue;
+    if (line.startsWith('import ')) continue;
+    if (line.startsWith('<')) continue;
+    if (line.startsWith('![')) continue;
+    return line.replace(/[*_`]/g, '');
+  }
+  return '';
+}
+
+const projects = entries.map((p) => ({
+  slug: p.id,
+  title: p.data.title,
+  accent: p.data.accent,
+  draft: p.data.draft ?? false,
+  summary: firstParagraph(p.body),
+}));
 ---
 <html lang="en">
 <head>
@@ -17,9 +40,22 @@ const projects = (await getCollection('projects'))
 </head>
 <body class="h-full">
   <div class="flex w-full h-full">
-    <!-- LEFT: selected project appears here (filled in-place by the drawer) -->
-    <div id="left" class="left is-empty w-1/2 h-full p-8">
-      <p>select a project →</p>
+    <!-- LEFT: BACK title + selected project content -->
+    <div class="w-1/2 h-full flex flex-col">
+      <h1 class="titre relative z-40 p-8 mix-blend-difference tracking-[-.02em]">
+        <a href="/" class="inline-flex items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-[0.8em] h-[0.8em]" viewBox="0 0 24 24"
+               fill="none" stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round">
+            <line x1="19" y1="12" x2="5" y2="12" />
+            <polyline points="12 19 5 12 12 5" />
+          </svg>
+          BACK
+        </a>
+      </h1>
+      <div id="left" class="left is-empty p-8">
+        <p>select a project →</p>
+      </div>
     </div>
 
     <!-- RIGHT: the 3D drawer -->
@@ -28,16 +64,18 @@ const projects = (await getCollection('projects'))
     </div>
   </div>
 
-  <!-- `projects` is injected at build time; the module imports the drawer logic.
-       Astro bundles the .ts import, so this ships as one small optimised chunk. -->
-  <script define:vars={{ projects }}>
-    import('../scripts/drawer.ts').then(({ initDrawer }) => {
-      initDrawer({
-        drawer: document.getElementById('drawer'),
-        right: document.getElementById('right'),
-        left: document.getElementById('left'),
-        projects,
-      });
+  <!-- Server data in a JSON tag (define:vars scripts aren't bundled). -->
+  <script type="application/json" id="projects-data" set:html={JSON.stringify(projects)}></script>
+
+  <!-- Plain <script> IS bundled by Astro, so the .ts import resolves (no 404). -->
+  <script>
+    import { initDrawer } from '../scripts/drawer';
+    const projects = JSON.parse(document.getElementById('projects-data').textContent);
+    initDrawer({
+      drawer: document.getElementById('drawer'),
+      right: document.getElementById('right'),
+      left: document.getElementById('left'),
+      projects,
     });
   </script>
 </body>
