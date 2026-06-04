@@ -13,7 +13,11 @@ const EXIT_DURATION_MS  = 800;
 const PLATEAU_FRACTION  = 0.18;
 
 const BG_COLOR  = "#eb7434";
-const BAR_COLOR = "#000000";
+const BAR_COLOR = "#854421";
+
+// ── Only play once per session ──────────────────
+if (!sessionStorage.getItem("gl-seen")) {
+  sessionStorage.setItem("gl-seen", "1");
 
 // ═══════════════════════════════════════════════
 // Setup
@@ -176,4 +180,6 @@ setTimeout(() => { barDone = true; checkDone(); }, LOAD_DURATION_MS);
 
 if (document.readyState === "complete") { pageDone = true; }
 else window.addEventListener("load", () => { pageDone = true; checkDone(); });
+
+} // end sessionStorage guard
 </script>

@@ -1,37 +1,44 @@
 ---
+import { getCollection } from 'astro:content';
 import '../styles/projects.css';
-import '../components/ProjectPage.astro'
-import ProjectPage from '../components/ProjectPage.astro';
+
+// Pull all projects, sorted by their `order` frontmatter.
+const projects = (await getCollection('projects'))
+  .sort((a, b) => a.data.order - b.data.order)
+  .map((p) => ({ slug: p.slug, title: p.data.title, accent: p.data.accent }));
 ---
-
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width" />
-    <meta name="generator" content={Astro.generator} >
-    <title>JOMSC</title>
+<head>
+  <meta charset="utf-8" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <meta name="viewport" content="width=device-width" />
+  <meta name="generator" content={Astro.generator} />
+  <title>JOMSC</title>
+</head>
+<body class="h-full">
+  <div class="flex w-full h-full">
+    <!-- LEFT: selected project appears here (filled in-place by the drawer) -->
+    <div id="left" class="left is-empty w-1/2 h-full p-8">
+      <p>select a project →</p>
+    </div>
 
-  </head>
-  <body class="h-full">
-	<div class="flex w-full h-full">
-		<div class="w-1/2 h-full">
-			<h1 class="tracking-[-.02em]"><a href="/">JOSEPH MOUSCADET</a></h1>
-		</div>
-		<div class="corps w-1/2 h-full flex flex-col">
-			<h2>PROJECTS</h2>
-      <div>
-        <ProjectPage name="01 — Unfolding Flowers" class="projet" />
-        <ProjectPage name="02 — ODYSSWEI" class="projet" />
-        <p class="texte">
-          <a href="/projects/p01/">P#01 : Unfolding Flowers</a>
-        </p>
-      </div>
-		</div>
-	</div>
+    <!-- RIGHT: the 3D drawer -->
+    <div id="right" class="right">
+      <div id="drawer" class="drawer"></div>
+    </div>
+  </div>
 
-	
-
-  </body>
+  <!-- `projects` is injected at build time; the module imports the drawer logic.
+       Astro bundles the .ts import, so this ships as one small optimised chunk. -->
+  <script define:vars={{ projects }}>
+    import('../scripts/drawer.ts').then(({ initDrawer }) => {
+      initDrawer({
+        drawer: document.getElementById('drawer'),
+        right: document.getElementById('right'),
+        left: document.getElementById('left'),
+        projects,
+      });
+    });
+  </script>
+</body>
 </html>
-

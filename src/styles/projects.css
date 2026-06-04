@@ -1,70 +1,130 @@
-@import "tailwindcss";
+/* ===== projects.css =====
+   Drawer + card-stack styling, matched to the site's grey/industrial system:
+   flat fills, hard 1px black borders, no radii, DataControl + JetBrains.
+   Palette: #a9a9a9 page · #d1d1d1 panel · #929292 card. */
 
-@font-face {
-    font-family: DataControl;
-    font-style: normal;
-    font-weight: 200 700;
-    font-display: swap;
-    src: url(/src/assets/data-latin.woff2) format("woff2");
+:root {
+  --card-w: clamp(180px, 20vw, 280px);
+  --card-h: clamp(240px, 28vw, 400px);
+  --accent: #000000;
+  --rail-w: 84px;
+  --line: #000000;
 }
 
-@font-face {
-    font-family: JetBrains;
-    font-style: normal;
-    font-weight: 200 700;
-    font-display: swap;
-    src: url(/src/assets/JetBrainsMono-Regular.woff2) format("woff2");
-}
-
-html {
-  background-color: #a9a9a9;
-  font-family: JetBrains;
+/* RIGHT panel = the drawer */
+.right {
+  flex: 0 0 48%;
   height: 100%;
+  position: relative;
+  perspective: 1600px;
+  overflow: hidden;
+  background-color: #a9a9a9;
+  transition: flex-basis .5s cubic-bezier(.16, 1, .3, 1);
 }
+/* collapsed after a selection; expands again on hover */
+.right.is-collapsed { flex-basis: var(--rail-w); cursor: pointer; }
+.right.is-collapsed:hover { flex-basis: 48%; }
 
-body {
-  margin: auto;
-  line-height: 1.5;
-  font-size: 1.2rem;
+.drawer {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  transform-style: preserve-3d;
+  transition: transform .5s cubic-bezier(.16, 1, .3, 1);
 }
+.right.is-collapsed .drawer { transform: scale(.88); }
 
-
-h1 {
-  font-size: 4rem;
-  text-align: left;
-  padding: 0.5rem 1rem;
-  color: #000000;
-  font-family: DataControl;
-}
-
-h2 {
-    font-size: 3rem;
-    font-family: DataControl;
-}
-
-.corps {
-  padding: 1rem 2rem;
-  color: black;
-  background-color: #d1d1d1;
-  text-decoration: none;
-  border-style: solid;
-  border-color: black;
-  border-width: 0px 0px 1px 1px;
-}
-
-.bg2 {
-  background-color: #d1d1d1;
-}
-
-.texte {
-  padding: 1% 5%;
-}
-
-.projet {
-  padding: 1rem 1rem;
-  color: black;
+/* CARDS — flat grey folders with hard black borders */
+.card {
+  position: absolute;
+  width: var(--card-w);
+  height: var(--card-h);
+  --offset: 0;
+  --abs: 0;
+  padding: 1rem;
   background-color: #929292;
-  border-style: solid;
-  border-color: black;
-  border-width: 1px;
+  border: 1px solid var(--line);
+  border-radius: 0;
+  color: #000000;
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  align-items: flex-end;
+  font-family: JetBrains;
+  /* flat, directional shadow rather than a soft blurred one */
+  box-shadow: calc(var(--abs) * -2px) calc(var(--abs) * 3px) 0 rgba(0, 0, 0, .18);
+  will-change: transform;
+  transform:
+    translateX(calc(var(--offset) * 14px))
+    translateY(calc(var(--abs) * 8px))
+    translateZ(calc(var(--abs) * -90px))
+    rotateY(-22deg) rotateX(4deg);
+  transition: transform .5s cubic-bezier(.16, 1, .3, 1), opacity .4s ease,
+              background-color .3s ease;
+}
+/* the folder tab */
+.card__tab {
+  position: absolute;
+  top: -19px;
+  left: -1px;
+  width: 86px;
+  height: 19px;
+  background-color: #929292;
+  border: 1px solid var(--line);
+  border-bottom: none;
+}
+.card__name {
+  font-family: DataControl;
+  font-size: 1.05rem;
+  line-height: 1.05;
+  letter-spacing: -.01em;
+  text-transform: uppercase;
+}
+.card:not(.is-front) { opacity: .9; }
+.card.is-front {
+  background-color: #d1d1d1;
+  transform: translateZ(60px) rotateY(-14deg) rotateX(2deg) scale(1.02);
+}
+.card.is-front .card__tab { background-color: #d1d1d1; }
+
+/* LEFT panel = project content (matches .corps surface) */
+.left {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 100%;
+  overflow-y: auto;
+  transition: opacity .4s ease;
+}
+.left.is-empty {
+  display: grid;
+  place-items: center;
+  opacity: .5;
+  font-family: DataControl;
+  text-transform: uppercase;
+}
+.left[data-loading="true"] { opacity: .4; }
+
+/* content typography inside the swapped-in project */
+.left .prose { padding: 1rem 2rem; color: #000000; }
+.left .prose img {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin: 1.5rem 0;
+  border: 1px solid var(--line);
+}
+
+/* embedded 3D models */
+.left model-viewer {
+  width: 100%;
+  height: clamp(280px, 40vh, 520px);
+  margin: 1.5rem 0;
+  background: transparent;
+  border: 1px solid var(--line);
+  --poster-color: transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card, .drawer, .right { transition-duration: .01ms; }
 }

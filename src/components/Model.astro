@@ -1,0 +1,23 @@
+---
+// Usage in markdown (MDX): <Model src="/models/flower.glb" alt="A flower" />
+// Renders a cursor-rotatable 3D model. The model-viewer script is loaded by
+// the project page; this component just emits the element.
+interface Props {
+  src: string;        // path to .glb / .gltf, e.g. "/models/flower.glb"
+  alt?: string;
+  poster?: string;    // optional placeholder image shown while loading
+  exposure?: number;  // brightness, default 1
+}
+const { src, alt = '3D model', poster, exposure = 1 } = Astro.props;
+---
+<model-viewer
+  src={src}
+  alt={alt}
+  poster={poster}
+  exposure={exposure}
+  camera-controls
+  touch-action="pan-y"
+  interaction-prompt="none"
+  loading="lazy"
+  reveal="auto"
+></model-viewer>
