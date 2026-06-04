@@ -12,7 +12,7 @@ import GlitchLoader from '../components/GlitchLoader.astro';
 <head>
   <meta charset="utf-8" />
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="generator" content={Astro.generator} >
   <title>JOMSC</title>
 </head>
@@ -83,10 +83,11 @@ import GlitchLoader from '../components/GlitchLoader.astro';
     width: 100vw;
     flex-direction: row;
     flex-shrink: 0;
-    /* scroll only inside the buttons row */
     overflow-x: auto;
     overflow-y: visible;
     scrollbar-width: none;
+    /* push content above Safari's home indicator */
+    padding-bottom: env(safe-area-inset-bottom);
   }
   #buttons-group::-webkit-scrollbar { display: none; }
 
