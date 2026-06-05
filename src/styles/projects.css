@@ -2,10 +2,9 @@
    Drawer + card-stack styling, matched to the site's grey/industrial system.
    Palette: #a9a9a9 page · #d1d1d1 panel · #929292 card. */
 :root {
-  --card-w: clamp(180px, 20vw, 280px);
-  --card-h: clamp(240px, 28vw, 400px);
+  --card-w: clamp(280px, 34vw, 540px);
+  --card-h: clamp(380px, 48vw, 720px);
   --accent: #000000;
-  --rail-w: 84px;
   --line: #000000;
 }
 
@@ -17,34 +16,34 @@
   perspective: 1600px;
   overflow: hidden;
   background-color: #a9a9a9;
-  transition: flex-basis .5s cubic-bezier(.16, 1, .3, 1);
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  border-left: 1px solid var(--line);
 }
-/* collapsed after a selection; expands again on hover */
-.right.is-collapsed { flex-basis: var(--rail-w); cursor: pointer; }
-.right.is-collapsed:hover { flex-basis: 48%; }
 
 .drawer {
   position: absolute;
   inset: 0;
   display: grid;
-  place-items: center;
-  transform-style: preserve-3d;
-  transition: transform .5s cubic-bezier(.16, 1, .3, 1);
+  place-items: center;   /* baseline = panel center; script offsets via --ty */
+  /* No preserve-3d: each card is its own flat plane, so z-index controls
+     stacking and the focused card reliably sits on top and stays clickable. */
 }
-.right.is-collapsed .drawer { transform: scale(.88); }
 
-/* CARDS — turned edge-on so each shows only a thin profile.
-   --depth = how far behind the front this card is (0 = front).
-   Cards are rotated hard around Y so the face is nearly perpendicular to the
-   screen; as they recede they climb upward and push back. */
+/* CARDS — hinge around the X (transverse) axis. Per-card vertical position
+   (--ty) and tilt (--tilt) are set by the script so the focused card can be
+   barely-rotated, the pile above tilts back, and passed cards drop far down.
+   All cards share the same depth (no Z-pop); clearance is purely vertical. */
 .card {
   position: absolute;
   width: var(--card-w);
   height: var(--card-h);
   --offset: 0;
   --abs: 0;
-  --depth: 0;
-  padding: 1rem;
+  --ty: 0px;
+  --tilt: 0deg;
+  --sc: 1;
+  padding: 1.6rem;
   background-color: #929292;
   border: 1px solid var(--line);
   border-radius: 12px;
@@ -53,40 +52,38 @@
   cursor: pointer;
   display: flex;
   flex-direction: column;
-  justify-content: flex-end;
+  justify-content: flex-start;
   font-family: JetBrains;
   transform-origin: center center;
   box-shadow: 0 10px 24px -10px rgba(0, 0, 0, .5);
   will-change: transform;
-  /* Non-front cards are turned ~72deg around Y (thin profile) and stacked
-     upward/back by depth. */
   transform:
-    translateY(calc(var(--depth) * -30px))
-    translateZ(calc(var(--depth) * -55px))
-    rotateY(-72deg)
-    scale(calc(1 - var(--depth) * 0.04));
+    translateY(var(--ty))
+    perspective(1200px)
+    rotateX(var(--tilt))
+    scale(var(--sc));
   transition: transform .5s cubic-bezier(.16, 1, .3, 1), opacity .4s ease,
               background-color .3s ease;
 }
 
-/* the folder tab */
+/* the folder tab — a small nook on the top-left edge */
 .card__tab {
   position: absolute;
-  top: -19px;
-  left: 18px;
-  width: 86px;
-  height: 20px;
+  top: -28px;
+  left: 28px;
+  width: 140px;
+  height: 29px;            /* +1px to overlap the card's top border */
   background-color: #929292;
   border: 1px solid var(--line);
   border-bottom: none;
-  border-radius: 8px 8px 0 0;
+  border-radius: 10px 10px 0 0;
 }
 
 /* card text */
 .card__body { display: block; }
 .card__name {
   font-family: DataControl;
-  font-size: 1.05rem;
+  font-size: 1.8rem;
   line-height: 1.05;
   letter-spacing: -.01em;
   text-transform: uppercase;
@@ -94,47 +91,43 @@
 }
 .card__summary {
   display: -webkit-box;
-  -webkit-line-clamp: 4;
+  -webkit-line-clamp: 6;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  margin-top: .5rem;
+  margin-top: .9rem;
   font-family: JetBrains;
-  font-size: .8rem;
-  line-height: 1.35;
+  font-size: 1rem;
+  line-height: 1.4;
   color: #222;
 }
 .card__soon {
   position: absolute;
-  inset: 0;
+  inset: -28px 0 0 0;       /* extend up to cover the tab as well */
   display: none;
   place-items: center;
+  padding-top: 28px;
   font-family: DataControl;
+  font-size: 1.6rem;
   text-transform: uppercase;
   letter-spacing: .04em;
-  background-color: rgba(146, 146, 146, .85);
-  border-radius: 12px;
+  color: #000;
+  background-color: rgba(146, 146, 146, .9);
+  border-radius: 10px;
 }
 
-/* The front card faces the viewer fully (flat, readable) and is highlighted. */
+/* The focused card is highlighted; stacking follows rank order (set in JS). */
 .card.is-front {
   background-color: #d1d1d1;
-  transform: translateY(0) translateZ(0) rotateY(0deg) scale(1.04);
   box-shadow: 0 18px 30px -10px rgba(0, 0, 0, .55);
 }
 .card.is-front .card__tab { background-color: #d1d1d1; }
 
-/* Passed cards slide down and out. */
-.card.is-passed {
-  transform: translateY(120%) translateZ(60px) rotateY(0deg) scale(1.04);
-  opacity: 0;
-  pointer-events: none;
-}
+.card:not(.is-front) { opacity: 1; }
 
-/* Slight fade with depth (passed/front excluded). */
-.card:not(.is-front):not(.is-passed) { opacity: calc(1 - var(--depth) * .03); }
-
-/* Draft / coming-soon cards: greyed out, not interactive. */
-.card.is-draft { filter: grayscale(1) brightness(.8); cursor: default; }
+/* Draft / coming-soon cards: greyed out uniformly (card + tab), not interactive. */
+.card.is-draft,
+.card.is-draft .card__tab { filter: grayscale(1) brightness(.85); }
+.card.is-draft { cursor: default; }
 .card.is-draft:hover .card__soon { display: grid; }
 
 /* LEFT panel = project content (matches .corps surface) */
