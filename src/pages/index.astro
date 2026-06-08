@@ -11,7 +11,7 @@ import TopoBackground from '../components/TopoBackground.astro';
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="icon" type="image/svg+xml" href="/logo.svg" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="generator" content={Astro.generator} >
   <title>JOMSC</title>
@@ -24,13 +24,11 @@ import TopoBackground from '../components/TopoBackground.astro';
 
     <!-- Video Section -->
     <div id="video-col" class="relative overflow-hidden">
-      <div class="absolute inset-0 flex items-center justify-center menuvideo">
-        <div class="h-full w-full">
-          <video class="min-h-full min-w-full object-cover object-center menuvideo" autoplay muted loop playsinline>
-            <source src={video_simon} type="video/mp4">
-            WHERE IS THE VIDEO
-          </video>
-        </div>
+      <div class="absolute inset-0 menuvideo">
+        <video class="w-full h-full object-cover object-center menuvideo" autoplay muted loop playsinline>
+          <source src={video_simon} type="video/mp4">
+          WHERE IS THE VIDEO
+        </video>
       </div>
       <h1 class="titre relative z-40 tracking-[-.02em] p-8 mix-blend-difference">JOSEPH MOUSCADET</h1>
     </div>
@@ -97,10 +95,16 @@ import TopoBackground from '../components/TopoBackground.astro';
     align-items: flex-start;
     text-decoration: none;
     white-space: nowrap;
-    transition: flex 0.15s ease-out, opacity 0.3s ease, background-color 0.2s ease;
+    /* no background-color transition on mobile so tap feedback is instant */
+    transition: flex 0.15s ease-out, opacity 0.3s ease;
     /* smaller border + text on mobile */
     border-width: 0px 0px 1px 1px;
     padding: 0.4rem 0.7rem;
+  }
+
+  /* Darker grey to acknowledge a tap on mobile */
+  .btn-item:active {
+    background-color: #a9a9a9;
   }
 
   .btn-item h2 {
@@ -132,6 +136,8 @@ import TopoBackground from '../components/TopoBackground.astro';
       width: 100%;
       padding: 1rem 2rem;
       border-width: 0px 0px 1px 1px;
+      /* re-enable background-color transition on desktop */
+      transition: flex 0.15s ease-out, opacity 0.3s ease, background-color 0.2s ease;
     }
     .btn-item h2 {
       font-size: 3rem;
@@ -154,6 +160,8 @@ import TopoBackground from '../components/TopoBackground.astro';
   const IDLE_TIMEOUT_MS = 2000;
   let idleTimer: ReturnType<typeof setTimeout> | null = null;
   let activeBtn: HTMLElement | null = null;
+  // Set by init() to onLeave, so the idle timer can release directly.
+  let onIdleExit: ((btn: HTMLElement) => void) | null = null;
 
   function clearIdle() {
     if (idleTimer) { clearTimeout(idleTimer); idleTimer = null; }
@@ -163,9 +171,8 @@ import TopoBackground from '../components/TopoBackground.astro';
     clearIdle();
     if (activeBtn) {
       idleTimer = setTimeout(() => {
-        if (activeBtn) {
-          activeBtn.dispatchEvent(new MouseEvent('mouseleave', { bubbles: true }));
-          activeBtn = null;
+        if (activeBtn && onIdleExit) {
+          onIdleExit(activeBtn);
         }
       }, IDLE_TIMEOUT_MS);
     }
@@ -204,8 +211,8 @@ import TopoBackground from '../components/TopoBackground.astro';
     Object.assign(clone.style, {
       position:        'fixed',
       zIndex:          '50',
-      color:           '#00ff00',
-      backgroundColor: '#002a66',
+      color:           '#000000',
+      backgroundColor: '#ffffff',
       pointerEvents:   'none',
     });
     document.body.appendChild(clone);
@@ -287,16 +294,36 @@ import TopoBackground from '../components/TopoBackground.astro';
       stopTextAnim(btn);
     }
 
+    // Let the idle timer release the active button via onLeave.
+    onIdleExit = onLeave;
+
+    // Mobile: skip all hover/glitch wiring entirely.
+    // Buttons just navigate immediately; CSS .btn-item:active gives tap feedback.
+    if (!isDesktop) return;
+
     buttons.forEach(btn => {
-      btn.addEventListener('mouseenter', () => onEnter(btn));
-      btn.addEventListener('mouseleave', () => onLeave(btn));
+      btn.addEventListener('mouseenter', () => {
+        // Sticky: if another button is already active, ignore this enter.
+        // The first selection holds until the idle timeout fires or the
+        // cursor crosses into the video column.
+        if (activeBtn && activeBtn !== btn) return;
+        onEnter(btn);
+      });
+      // No per-button mouseleave — exit is handled by the idle timer
+      // and by entering the video column (below).
     });
 
-    if (!isDesktop) return;
+    // Crossing into the left (video) side releases the active button.
+    videocol.addEventListener('mouseenter', () => {
+      if (activeBtn) onLeave(activeBtn);
+    });
 
     function reset() {
       buttons.forEach(btn => { btn.style.flex = "1 1 0"; });
     }
+
+    // ⚙️ How much bigger the central button is (1 = none, higher = bigger)
+    const CENTER_BIAS = 1.6;
 
     function applyGrow(mouseY: number) {
       const centres = buttons.map(btn => {
@@ -305,9 +332,13 @@ import TopoBackground from '../components/TopoBackground.astro';
       });
       const dists   = centres.map(cy => Math.abs(cy - mouseY));
       const maxDist = Math.max(...dists) || 1;
-      const raw     = dists.map(d => {
+      const mid     = (buttons.length - 1) / 2;
+      const raw     = dists.map((d, i) => {
         const norm = d / maxDist;
-        return MAX_PERCENT - norm * (MAX_PERCENT - MIN_PERCENT);
+        const base = MAX_PERCENT - norm * (MAX_PERCENT - MIN_PERCENT);
+        // Weight peaks at the central index, falls off toward the edges.
+        const centerWeight = 1 + (CENTER_BIAS - 1) * (1 - Math.abs(i - mid) / (mid || 1));
+        return base * centerWeight;
       });
       const sum = raw.reduce((a, b) => a + b, 0);
       buttons.forEach((btn, i) => {

@@ -6,6 +6,7 @@
   --card-h: clamp(323px, 41vw, 612px);
   --accent: #000000;
   --line: #000000;
+  background-color: #d1d1d1;
 }
 
 /* RIGHT panel = the drawer */
@@ -150,6 +151,7 @@
   min-height: 0;
   overflow-y: auto;
   transition: opacity .4s ease;
+  background-color: #d1d1d1;
 }
 .left.is-empty {
   display: grid;
@@ -157,6 +159,7 @@
   opacity: .5;
   font-family: DataControl;
   text-transform: uppercase;
+  background-color: #d1d1d1;
 }
 .left[data-loading="true"] { opacity: .4; }
 

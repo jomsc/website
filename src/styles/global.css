@@ -1,34 +1,28 @@
 @import "tailwindcss";
-
 @font-face {
-    font-family: DataControl;
-    font-style: normal;
-    font-weight: 200 700;
-    font-display: swap;
-    src: url(/src/assets/data-latin.woff2) format("woff2");
+  font-family: DataControl;
+  font-style: normal;
+  font-weight: 200 700;
+  font-display: swap;
+  src: url(/src/assets/data-latin.woff2) format("woff2");
 }
-
 @font-face {
-    font-family: JetBrains;
-    font-style: normal;
-    font-weight: 200 700;
-    font-display: swap;
-    src: url(/src/assets/JetBrainsMono-Regular.woff2) format("woff2");
+  font-family: JetBrains;
+  font-style: normal;
+  font-weight: 200 700;
+  font-display: swap;
+  src: url(/src/assets/JetBrainsMono-Regular.woff2) format("woff2");
 }
-
 html {
   background-color: #a9a9a9;
   font-family: JetBrains;
   height: 100%;
 }
-
 body {
   margin: auto;
   line-height: 1.5;
   font-size: 1.2rem;
 }
-
-
 h1 {
   font-size: 4rem;
   text-align: left;
@@ -36,26 +30,22 @@ h1 {
   color: #ffffff;
   font-family: DataControl;
 }
-
 h2 {
-    font-size: 3rem;
-    font-family: DataControl;
+  font-size: 3rem;
+  font-family: DataControl;
 }
-
 .corps {
-    padding: 1rem 2rem;
-    color: black;
-    background-color: #d1d1d1;
-    text-decoration: none;
-    border-style: solid;
-    border-color: black;
-    border-width: 0px 0px 1px 1px;
+  padding: 1rem 2rem;
+  color: black;
+  background-color: #d1d1d1;
+  text-decoration: none;
+  border-style: solid;
+  border-color: black;
+  border-width: 0px 0px 1px 1px;
 }
-
 .bg2 {
   background-color: #d1d1d1;
 }
-
 .texte {
-    padding: 1% 5%;
+  padding: 1% 5%;
 }

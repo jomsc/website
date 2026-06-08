@@ -13,7 +13,7 @@ The Sono ENSTA association (which I was part of at the time) is responsible each
 Like the previous editions, preparation began about 3 months in advance (in June 2025). The main student organization asked for a weekend centered around The Odyssey, so after some thought, we decided to build two Zeus heads out of white wood, about 3 meters tall, onto which we would use once again the *Projection Mapping* technique: using a projector to display some colored shapes on the two heads. Here is a screenshot of the iterations that I went through when designing the head model. I based my work off of a Zeus statue 3D model found on the Musee du Louvre Open Data website.
 ![Blender screenshot](/images/odysswei-01.JPG)
 
-Here is the stage preview plot maed in Vectorworks. We decided to set up the two heads on either side of a giant LED screen with some light fixtures that we rented from a nearby company.
+Here is the stage preview plot made in Vectorworks. We decided to set up the two heads on either side of a giant LED screen with some light fixtures that we rented from a nearby company.
 ![Vectorworks plot](/images/odysswei-02.png)
 
 This time, rather than cutting each face individually, we cut groups of faces and we did some very shallow cuts along the edges inside the groups so that we could bend the wood. This allowed us to have a strong structure that could support itself while being geometrically precise, without having to make support structure for each face. We used foam to glue everything together. The result was a really light structure that was pretty strong and could support itself. Here I am posing in front of one of the heads :
