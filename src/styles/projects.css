@@ -2,8 +2,8 @@
    Drawer + card-stack styling, matched to the site's grey/industrial system.
    Palette: #a9a9a9 page · #d1d1d1 panel · #929292 card. */
 :root {
-  --card-w: clamp(280px, 34vw, 540px);
-  --card-h: clamp(380px, 48vw, 720px);
+  --card-w: clamp(238px, 29vw, 459px);
+  --card-h: clamp(323px, 41vw, 612px);
   --accent: #000000;
   --line: #000000;
 }
@@ -89,6 +89,19 @@
   text-transform: uppercase;
   display: block;
 }
+.card__media {
+  display: block;
+  width: 100%;
+  margin: 1rem 0;
+}
+.card__media img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1 / 1;     /* square */
+  object-fit: cover;        /* crop to fill, scaled down, no distortion */
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
 .card__summary {
   display: -webkit-box;
   -webkit-line-clamp: 6;
@@ -148,20 +161,34 @@
 .left[data-loading="true"] { opacity: .4; }
 
 /* content typography inside the swapped-in project */
-.left .prose { padding: 1rem 2rem; color: #000000; }
-.left .prose img {
+/* Project content: a centered, readable column with justified text. */
+.left .prose {
+  padding: 1rem 2rem;
+  color: #000000;
+  max-width: 70ch;        /* readable column width */
+  margin: 0 auto;         /* centered within the panel */
+  text-align: justify;    /* justified paragraphs */
+  hyphens: auto;          /* nicer justification, fewer big gaps */
+}
+
+/* Block media is centered and capped so it doesn't span the full column edge-to-edge. */
+.left .prose img,
+.left .prose video {
   display: block;
   width: 100%;
+  max-width: 100%;
   height: auto;
-  margin: 1.5rem 0;
+  margin: 1.5rem auto;    /* auto left/right = centered */
   border: 1px solid var(--line);
 }
 
 /* embedded 3D models */
+.left .prose model-viewer,
 .left model-viewer {
+  display: block;
   width: 100%;
   height: clamp(280px, 40vh, 520px);
-  margin: 1.5rem 0;
+  margin: 1.5rem auto;
   background: transparent;
   border: 1px solid var(--line);
   --poster-color: transparent;

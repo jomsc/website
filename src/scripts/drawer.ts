@@ -8,6 +8,7 @@ export interface ProjectMeta {
   accent?: string;
   summary?: string;  // first paragraph of the project, shown on the card
   draft?: boolean;   // true = greyed-out, non-clickable "coming soon" card
+  cover?: string;    // square image shown in the middle of the card
 }
 
 interface DrawerOpts {
@@ -31,18 +32,26 @@ export function initDrawer({ drawer, right, left, projects }: DrawerOpts) {
     if (p.draft) el.classList.add('is-draft');
 
     const summary = p.summary ? `<span class="card__summary">${p.summary}</span>` : '';
+    const cover = p.cover
+      ? `<span class="card__media"><img src="${p.cover}" alt="" loading="lazy" /></span>`
+      : '';
     el.innerHTML =
       `<span class="card__tab"></span>` +
       `<span class="card__body">` +
         `<span class="card__name">${p.title}</span>` +
         summary +
+        cover +
       `</span>` +
       `<span class="card__soon">coming soon…</span>`;
 
+    // Focus the card the cursor is actually over (the visible one you point at).
+    el.addEventListener('mouseenter', () => {
+      if (index !== i) { index = i; render(); }
+    });
+    // Click selects whatever card you're pointing at.
     el.addEventListener('click', () => {
       if (p.draft) return;            // drafts are not selectable
-      if (i === index) selectProject(p);
-      else go(i);
+      selectProject(p);
     });
     drawer.appendChild(el);
     return el;
@@ -56,17 +65,11 @@ export function initDrawer({ drawer, right, left, projects }: DrawerOpts) {
   const TOP_PAD = 0.16;     // fraction of panel height kept as margin top/bottom
   const CLEARANCE = 70;     // px each neighbor shifts away to clear the focused card
   const IDLE_SQUEEZE = 0.62; // <1 = cards sit closer together when nothing is hovered
-  const CARD_H_RESERVE = 0.6; // fraction of card height reserved so the top/bottom
-                              // cards stay on-screen (lower = more spread out)
 
   function render() {
     const n = projects.length;
     const h = right.clientHeight || 1;
-    // Reserve (part of) the card's own height so the top & bottom cards stay
-    // fully inside the panel instead of spilling past the edges. Subtracting
-    // this shrinks the spread, which compresses the cards closer together.
-    const cardH = cards[0]?.offsetHeight || 360;
-    const usable = Math.max(0, h * (1 - TOP_PAD * 2) - cardH * CARD_H_RESERVE);
+    const usable = h * (1 - TOP_PAD * 2);
     // Resting gap is compressed; when a card is focused we use the full spread.
     const squeeze = index < 0 ? IDLE_SQUEEZE : 1;
     const span = n > 1 ? (usable / (n - 1)) * squeeze : 0;
@@ -99,11 +102,12 @@ export function initDrawer({ drawer, right, left, projects }: DrawerOpts) {
       el.style.setProperty('--tilt', `${tilt}deg`);
       el.style.setProperty('--sc', String(sc));
       el.classList.toggle('is-front', focused);
-      // Strict rank order: card n in front of every k>n, behind every i<n.
-      // (Lower index = higher in the stack.) Focused card does NOT jump out.
-      el.style.zIndex = String(n - i);
-      // Only the focused card catches clicks.
-      el.style.pointerEvents = focused ? 'auto' : 'none';
+      // Visual stacking: lower index paints on top. Focused card lifts above
+      // all so its visible area isn't occluded and reliably catches the click.
+      el.style.zIndex = String(focused ? 5000 : n - i);
+      // Every card is hit-testable, so the browser picks whichever card's
+      // visible pixels are under the cursor — i.e. the one you point at.
+      el.style.pointerEvents = projects[i].draft ? 'none' : 'auto';
     }
   }
 
@@ -143,17 +147,9 @@ export function initDrawer({ drawer, right, left, projects }: DrawerOpts) {
     }
   }
 
-  // Cursor vertical position only chooses WHICH card is focused.
-  // The cards keep their fixed slots; nothing slides.
-  right.addEventListener('mousemove', (e) => {
-    const rect = right.getBoundingClientRect();
-    const frac = 1 - (e.clientY - rect.top) / rect.height;  // bottom = first card
-    const clamped = Math.min(0.999, Math.max(0, frac));
-    const target = Math.floor(clamped * projects.length);
-    if (target !== index) { index = target; render(); }
-  });
-
-  // Leaving the panel deselects everything (no card focused).
+  // Focus is driven by per-card mouseenter (set up per card above), so the
+  // card you actually point at is the one that highlights. Leaving the panel
+  // deselects everything.
   right.addEventListener('mouseleave', () => {
     if (index !== -1) { index = -1; render(); }
   });

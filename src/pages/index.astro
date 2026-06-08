@@ -3,9 +3,10 @@ import '../styles/global.css';
 import { Image } from 'astro:assets';
 import image_1 from "../assets/joseph.jpg";
 import image_2 from "../assets/projets.jpg";
-import image_3 from "../assets/links.jpg";
+import image_3 from "../assets/links.png";
 import video_simon from "../assets/simon.mp4"
 import GlitchLoader from '../components/GlitchLoader.astro';
+import TopoBackground from '../components/TopoBackground.astro';
 ---
 <html lang="en">
 <head>
@@ -16,6 +17,7 @@ import GlitchLoader from '../components/GlitchLoader.astro';
   <title>JOMSC</title>
 </head>
 <body class="h-full grid">
+  <TopoBackground />
   <GlitchLoader />
 
   <div id="main-layout" class="flex w-full h-full col-start-1 row-start-1 z-30">
@@ -46,10 +48,10 @@ import GlitchLoader from '../components/GlitchLoader.astro';
     <Image src={image_1} alt="Me!!!" class="w-1/2 object-cover image-menu opacity-0 image1" />
   </div>
   <div class="col-start-1 row-start-1 z-40 w-screen h-screen flex items-center justify-center pointer-events-none">
-    <Image src={image_2} alt="PLACEHOLDER" class="w-1/3 object-cover image-menu opacity-0 image2" />
+    <Image src={image_2} alt="Projects" class="w-1/3 object-cover image-menu opacity-0 image2" />
   </div>
   <div class="col-start-1 row-start-1 z-40 w-screen h-screen flex items-center justify-center pointer-events-none">
-    <Image src={image_3} alt="PLACEHOLDER" class="w-1/3 object-cover image-menu opacity-0 image3" />
+    <Image src={image_3} alt="Links" class="w-1/3 object-cover image-menu opacity-0 image3" />
   </div>
 </body>
 </html>

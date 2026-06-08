@@ -7,27 +7,13 @@ import '../styles/projects.css';
 const entries = (await getCollection('projects'))
   .sort((a, b) => a.data.order - b.data.order);
 
-// The card blurb is the first real paragraph of each project's markdown.
-function firstParagraph(body: string | undefined): string {
-  if (!body) return '';
-  for (const raw of body.split('\n')) {
-    const line = raw.trim();
-    if (!line) continue;
-    if (line.startsWith('#')) continue;
-    if (line.startsWith('import ')) continue;
-    if (line.startsWith('<')) continue;
-    if (line.startsWith('![')) continue;
-    return line.replace(/[*_`]/g, '');
-  }
-  return '';
-}
-
 const projects = entries.map((p) => ({
   slug: p.id,
   title: p.data.title,
   accent: p.data.accent,
   draft: p.data.draft ?? false,
-  summary: firstParagraph(p.body),
+  summary: p.data.cardtext ?? '',   // blurb shown on the card
+  cover: p.data.cover ?? '',        // square image shown on the card
 }));
 ---
 <html lang="en">

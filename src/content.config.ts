@@ -13,6 +13,7 @@ const projects = defineCollection({
     cover: z.string().optional(),
     accent: z.string().optional(),
     draft: z.boolean().optional(),  // true = greyed-out "coming soon" card
+    cardtext: z.string().optional(), // short blurb shown on the card
   }),
 });
 
