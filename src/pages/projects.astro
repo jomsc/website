@@ -21,14 +21,15 @@ const projects = entries.map((p) => ({
 <head>
   <meta charset="utf-8" />
   <link rel="icon" type="image/svg+xml" href="/logo.svg" />
-  <meta name="viewport" content="width=device-width" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="generator" content={Astro.generator} />
   <title>JOMSC</title>
 </head>
 <body class="h-full">
-  <div class="flex w-full h-full">
-    <!-- LEFT: BACK title + selected project content -->
-    <div class="w-1/2 h-full flex flex-col">
+  <div id="projects-layout" class="flex w-full h-full">
+
+    <!-- LEFT: BACK title + (mobile) menu + selected project content -->
+    <div id="left-col" class="flex flex-col">
       <h1 class="titre relative z-40 p-8 mix-blend-difference tracking-[-.02em]">
         <a href="/" class="inline-flex items-center gap-2">
           <svg xmlns="http://www.w3.org/2000/svg" class="w-[0.8em] h-[0.8em]" viewBox="0 0 24 24"
@@ -40,12 +41,39 @@ const projects = entries.map((p) => ({
           BACK
         </a>
       </h1>
+
+      <!-- MOBILE custom menu: a floating circular button (bottom-right) that
+           toggles a scrollable project list. Hides while scrolling. Hidden on
+           desktop, where the 3D drawer is used instead. -->
+      <div id="project-menu" class="project-menu">
+        <ul id="menu-list" class="menu-list" role="listbox" aria-label="Projects"></ul>
+        <button id="menu-toggle" type="button" class="menu-fab" aria-expanded="false" aria-controls="menu-list" aria-label="Select a project">
+          <span class="menu-fab__icon menu-fab__icon--menu" aria-hidden="true">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                 fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round">
+              <line x1="4" y1="7" x2="20" y2="7" />
+              <line x1="4" y1="12" x2="20" y2="12" />
+              <line x1="4" y1="17" x2="20" y2="17" />
+            </svg>
+          </span>
+          <span class="menu-fab__icon menu-fab__icon--close" aria-hidden="true">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                 fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round">
+              <line x1="6" y1="6" x2="18" y2="18" />
+              <line x1="18" y1="6" x2="6" y2="18" />
+            </svg>
+          </span>
+        </button>
+      </div>
+
       <div id="left" class="left is-empty p-8">
         <p>select a project →</p>
       </div>
     </div>
 
-    <!-- RIGHT: the 3D drawer -->
+    <!-- RIGHT: the 3D drawer (desktop only) -->
     <div id="right" class="right">
       <TopoBackground />
       <div id="drawer" class="drawer"></div>
@@ -58,13 +86,222 @@ const projects = entries.map((p) => ({
   <!-- Plain <script> IS bundled by Astro, so the .ts import resolves (no 404). -->
   <script>
     import { initDrawer } from '../scripts/drawer';
+
     const projects = JSON.parse(document.getElementById('projects-data').textContent);
-    initDrawer({
+
+    const api = initDrawer({
       drawer: document.getElementById('drawer'),
       right: document.getElementById('right'),
       left: document.getElementById('left'),
       projects,
     });
+
+    // ── Mobile custom menu ──────────────────────────────────────────────
+    // Floating circular button toggles a non-native scrollable list and reuses
+    // the drawer's selectProject so tapping a project loads content inline.
+    const menu    = document.getElementById('project-menu');
+    const toggle  = document.getElementById('menu-toggle');
+    const list    = document.getElementById('menu-list');
+    const leftEl  = document.getElementById('left');
+
+    // Populate the list from the same project data.
+    projects.forEach((p) => {
+      const li = document.createElement('li');
+      li.className = 'menu-item' + (p.draft ? ' is-draft' : '');
+      li.setAttribute('role', 'option');
+      li.dataset.slug = p.slug;
+      li.textContent = p.draft ? `${p.title} — coming soon…` : p.title;
+      if (p.accent) li.style.setProperty('--accent', p.accent);
+
+      li.addEventListener('click', () => {
+        if (p.draft) return;
+        api.selectProject(p);
+        list.querySelectorAll('.menu-item').forEach((el) => el.classList.remove('is-selected'));
+        li.classList.add('is-selected');
+        closeMenu();
+      });
+
+      list.appendChild(li);
+    });
+
+    function openMenu() {
+      menu.classList.add('is-open');
+      toggle.setAttribute('aria-expanded', 'true');
+    }
+    function closeMenu() {
+      menu.classList.remove('is-open');
+      toggle.setAttribute('aria-expanded', 'false');
+    }
+    function toggleMenu() {
+      menu.classList.contains('is-open') ? closeMenu() : openMenu();
+    }
+
+    toggle.addEventListener('click', (e) => { e.stopPropagation(); toggleMenu(); });
+
+    // Close when tapping outside the menu.
+    document.addEventListener('click', (e) => {
+      if (!menu.contains(e.target)) closeMenu();
+    });
+    // Close on Escape.
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeMenu();
+    });
+
+    // ── Hide the button while scrolling the content, show when it stops ──
+    let scrollIdle;
+    leftEl.addEventListener('scroll', () => {
+      menu.classList.add('is-scrolling');
+      closeMenu(); // collapse the list if it was open
+      clearTimeout(scrollIdle);
+      scrollIdle = setTimeout(() => {
+        menu.classList.remove('is-scrolling');
+      }, 600);
+    }, { passive: true });
   </script>
 </body>
 </html>
+
+<style>
+  /* ── Mobile layout (default): stacked, menu + content; drawer hidden ── */
+  #projects-layout {
+    flex-direction: column;
+    min-height: 100vh;
+    min-height: 100dvh;
+  }
+
+  #left-col {
+    width: 100vw;
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+
+  /* smaller BACK button on mobile */
+  #left-col .titre {
+    font-size: 2rem;
+    padding: 1rem;
+  }
+
+  /* hide the 3D drawer on mobile */
+  #right { display: none; }
+
+  /* the custom menu — floating, bottom-right */
+  .project-menu {
+    position: fixed;
+    right: calc(1rem + env(safe-area-inset-right));
+    bottom: calc(1rem + env(safe-area-inset-bottom));
+    z-index: 60;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.6rem;
+    /* hide-on-scroll: fade + slide down, non-interactive while hidden */
+    transition: opacity 0.25s ease, transform 0.25s ease;
+  }
+  .project-menu.is-scrolling {
+    opacity: 0;
+    transform: translateY(1rem);
+    pointer-events: none;
+  }
+
+  /* circular button */
+  .menu-fab {
+    width: 3.5rem;
+    height: 3.5rem;
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background-color: #929292;
+    border: 1px solid #000000;
+    color: #000000;
+    cursor: pointer;
+    box-shadow: 0 6px 16px -6px rgba(0, 0, 0, 0.6);
+    transition: background-color 0.2s ease;
+  }
+  .menu-fab:active { background-color: #b5b5b5; }
+  .menu-fab__icon {
+    grid-area: 1 / 1;
+    width: 1.6rem;
+    height: 1.6rem;
+    display: inline-flex;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+  }
+  .menu-fab__icon svg { width: 100%; height: 100%; }
+  /* swap menu/close icons based on open state */
+  .menu-fab__icon--close { opacity: 0; transform: rotate(-90deg); }
+  .project-menu.is-open .menu-fab__icon--menu  { opacity: 0; transform: rotate(90deg); }
+  .project-menu.is-open .menu-fab__icon--close { opacity: 1; transform: rotate(0deg); }
+
+  /* the scrollable, non-native list — grows upward from the button */
+  .menu-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    width: min(78vw, 20rem);
+    max-height: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    background-color: #d1d1d1;
+    border: 1px solid #000000;
+    box-shadow: 0 10px 24px -10px rgba(0, 0, 0, 0.6);
+    opacity: 0;
+    transform-origin: bottom right;
+    transition: max-height 0.28s ease, opacity 0.2s ease;
+    pointer-events: none;
+  }
+  .project-menu.is-open .menu-list {
+    /* scrollable window — caps height so long lists scroll */
+    max-height: 60vh;
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .menu-item {
+    padding: 0.8rem 1rem;
+    border-top: 1px solid #00000022;
+    font-family: DataControl;
+    font-size: 1.25rem;
+    text-transform: uppercase;
+    letter-spacing: -0.01em;
+    color: #000000;
+    cursor: pointer;
+  }
+  .menu-item:first-child { border-top: none; }
+  .menu-item:active { background-color: var(--accent, #a9a9a9); color: #ffffff; }
+  .menu-item.is-selected { background-color: #b5b5b5; }
+  .menu-item.is-draft {
+    color: #00000066;
+    cursor: default;
+    font-style: italic;
+  }
+
+  /* content area fills remaining height and scrolls */
+  #left {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    padding-bottom: calc(2rem + env(safe-area-inset-bottom));
+  }
+
+  /* ── Desktop overrides: side-by-side, drawer visible, no menu ── */
+  @media (min-width: 768px) {
+    #projects-layout {
+      flex-direction: row;
+      min-height: 0;
+      height: 100%;
+    }
+    #left-col {
+      width: 50%;
+      height: 100%;
+    }
+    #left-col .titre {
+      font-size: 4rem;
+      padding: 2rem;
+    }
+    /* drawer back on, menu off */
+    #right { display: block; }
+    #project-menu { display: none; }
+    #left {
+      padding-bottom: 0;
+    }
+  }
+</style>

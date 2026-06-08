@@ -3,51 +3,116 @@ import '../styles/global.css';
 import { Image } from 'astro:assets';
 import image_1 from "../assets/joseph.jpg";
 ---
-
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <link rel="icon" type="image/svg+xml" href="/logo.svg" />
-    <meta name="viewport" content="width=device-width" />
-    <meta name="generator" content={Astro.generator} >
-    <title>JOMSC</title>
+<head>
+  <meta charset="utf-8" />
+  <link rel="icon" type="image/svg+xml" href="/logo.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="generator" content={Astro.generator} >
+  <title>JOMSC</title>
+</head>
+<body class="h-full">
+  <div id="whoami-layout" class="flex w-full h-full">
 
-  </head>
-  <body class="h-full">
-	<div class="flex w-full h-full">
-		<div class="w-1/2 h-screen relative overflow-hidden">
-      <div class="absolute inset-0 felx items-center justify-center">
-        <Image src={image_1} alt="Me!!!" class="min-h-full min-w-full object-cover" />
+    <!-- Image / BACK -->
+    <div id="whoami-image-col" class="relative overflow-hidden">
+      <div class="absolute inset-0 flex items-center justify-center">
+        <Image src={image_1} alt="Me!!!" class="min-h-full min-w-full object-cover object-center" />
       </div>
-
-			<h1 class="titre relative z-40 p-8 mix-blend-difference tracking-[-.02em]">
+      <h1 class="titre relative z-40 p-8 mix-blend-difference tracking-[-.02em]">
         <a href="/" class="inline-flex items-center gap-2">
           <svg xmlns="http://www.w3.org/2000/svg" class="w-[0.8em] h-[0.8em]" viewBox="0 0 24 24"
-              fill="none" stroke="currentColor" stroke-width="2"
-              stroke-linecap="round" stroke-linejoin="round">
+               fill="none" stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round">
             <line x1="19" y1="12" x2="5" y2="12" />
             <polyline points="12 19 5 12 12 5" />
           </svg>
           BACK
         </a>
       </h1>
-		</div>
-		<div class="corps w-1/2 h-full flex flex-col">
-			<h2>WHO AM I ?</h2>
-            <p class="texte text-justify">
-                My name is Joseph Mouscadet, <br />
-                I am a french student from ENSTA Paris currently doing a gap year in Paris, and I am interested in a lot of things!
-                I love VJing with TouchDesigner, FPV drones, and making all sorts of things myself.
-                I also love electronic music and I do the scenography at my school's student organization for events and concerts. <br />
-                <br />
-                Please feel free to reach out if you want to talk with me, or if you have any work for me as I am open to comissions !
-                <br /><br />
-                I hope you will enjoy my website !
-            </p>
-		</div>
-	</div>
+    </div>
 
-	
-
-  </body>
+    <!-- Text -->
+    <div id="whoami-text-col" class="corps flex flex-col">
+      <h2>WHO AM I ?</h2>
+      <p class="texte text-justify">
+        My name is Joseph Mouscadet, <br />
+        I am a french student from ENSTA Paris currently doing a gap year in Paris, and I am interested in a lot of things!
+        I love VJing with TouchDesigner, FPV drones, and making all sorts of things myself.
+        I also love electronic music and I do the scenography at my school's student organization for events and concerts. <br />
+        <br />
+        Please feel free to reach out if you want to talk with me, or if you have any work for me as I am open to comissions !
+        <br /><br />
+        I hope you will enjoy my website !
+      </p>
+    </div>
+  </div>
+</body>
 </html>
+
+<style>
+  /* ── Mobile layout (default): stacked, image on top ── */
+  #whoami-layout {
+    flex-direction: column;
+    min-height: 100vh;
+    min-height: 100dvh;
+  }
+
+  #whoami-image-col {
+    width: 100vw;
+    /* much smaller image area on mobile */
+    height: 40vh;
+    flex-shrink: 0;
+  }
+
+  /* smaller BACK button on mobile */
+  #whoami-image-col .titre {
+    font-size: 2rem;
+    padding: 1rem;
+  }
+
+  #whoami-text-col {
+    width: 100vw;
+    flex: 1 1 auto;
+  }
+
+  /* smaller heading + body text on mobile */
+  #whoami-text-col h2 {
+    font-size: 2rem;
+    padding: 1rem 1.25rem 0;
+  }
+  #whoami-text-col .texte {
+    font-size: 1rem;
+    line-height: 1.5;
+    padding: 0.5rem 1.25rem calc(1.25rem + env(safe-area-inset-bottom));
+  }
+
+  /* ── Desktop overrides: side-by-side, original sizing ── */
+  @media (min-width: 768px) {
+    #whoami-layout {
+      flex-direction: row;
+      min-height: 0;
+      height: 100%;
+    }
+    #whoami-image-col {
+      width: 50%;
+      height: 100vh;
+    }
+    #whoami-image-col .titre {
+      font-size: 4rem;
+      padding: 2rem;
+    }
+    #whoami-text-col {
+      width: 50%;
+      height: 100%;
+    }
+    #whoami-text-col h2 {
+      font-size: 3rem;
+      padding: 1rem 2rem 0;
+    }
+    #whoami-text-col .texte {
+      font-size: 1.2rem;
+      padding: 1% 5%;
+    }
+  }
+</style>

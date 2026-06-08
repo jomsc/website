@@ -85,8 +85,6 @@ import TopoBackground from '../components/TopoBackground.astro';
     overflow-x: auto;
     overflow-y: visible;
     scrollbar-width: none;
-    /* push content above Safari's home indicator, with a small minimum */
-    padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
   }
   #buttons-group::-webkit-scrollbar { display: none; }
 
@@ -98,9 +96,11 @@ import TopoBackground from '../components/TopoBackground.astro';
     white-space: nowrap;
     /* no background-color transition on mobile so tap feedback is instant */
     transition: flex 0.15s ease-out, opacity 0.3s ease;
-    /* smaller border + text on mobile */
+    /* smaller border + text on mobile; extend bottom by the safe-area
+       inset so buttons fill to the edge above Safari's home indicator */
     border-width: 0px 0px 1px 1px;
     padding: 0.4rem 0.7rem;
+    padding-bottom: calc(0.4rem + env(safe-area-inset-bottom));
   }
 
   /* Darker grey to acknowledge a tap on mobile */

@@ -122,6 +122,8 @@ export function initDrawer({ drawer, right, left, projects }: DrawerOpts) {
     activeSlug = p.slug;
     left.classList.remove('is-empty');
     left.dataset.loading = 'true';
+    // Always start a freshly-selected project from the top (desktop + mobile).
+    left.scrollTop = 0;
 
     try {
       // Fetch the rendered project page and pull out its <main> content.
@@ -131,6 +133,8 @@ export function initDrawer({ drawer, right, left, projects }: DrawerOpts) {
       const doc = new DOMParser().parseFromString(html, 'text/html');
       const content = doc.querySelector('[data-project-content]');
       left.innerHTML = content ? content.innerHTML : '<p>Could not load project.</p>';
+      // Reset again after injecting (new content may have changed height).
+      left.scrollTop = 0;
 
       // If the project embeds a <model-viewer>, ensure the script is present.
       if (left.querySelector('model-viewer') && !document.getElementById('mv-script')) {
@@ -162,4 +166,8 @@ export function initDrawer({ drawer, right, left, projects }: DrawerOpts) {
   });
 
   render();
+
+  // Expose the select path + data so other UIs (e.g. the mobile menu) can
+  // reuse the exact same inline-load behaviour without duplicating logic.
+  return { selectProject, projects, getActiveSlug: () => activeSlug };
 }
