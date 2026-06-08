@@ -2,6 +2,7 @@
 import { getCollection } from 'astro:content';
 import '../styles/global.css';   // brings in Tailwind + @font-face (DataControl/JetBrains)
 import '../styles/projects.css';
+import TopoBackground from '../components/TopoBackground.astro';
 
 // Pull all projects, sorted by their `order` frontmatter.
 const entries = (await getCollection('projects'))
@@ -46,6 +47,7 @@ const projects = entries.map((p) => ({
 
     <!-- RIGHT: the 3D drawer -->
     <div id="right" class="right">
+      <TopoBackground />
       <div id="drawer" class="drawer"></div>
     </div>
   </div>

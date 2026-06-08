@@ -63,8 +63,8 @@ export function initDrawer({ drawer, right, left, projects }: DrawerOpts) {
   const TILT_BELOW = -70;   // deg: unfocused cards below the focus (passed)
   const SHRINK = 0.03;      // scale loss per slot from the bottom
   const TOP_PAD = 0.16;     // fraction of panel height kept as margin top/bottom
-  const CLEARANCE = 70;     // px each neighbor shifts away to clear the focused card
-  const IDLE_SQUEEZE = 0.62; // <1 = cards sit closer together when nothing is hovered
+  const CLEARANCE = 80;     // px each neighbor shifts away to clear the focused card
+  const IDLE_SQUEEZE = 0.4; // <1 = cards sit closer together when nothing is hovered
 
   function render() {
     const n = projects.length;
