@@ -65,7 +65,8 @@ import TopoBackground from '../components/TopoBackground.astro';
   #main-layout {
     flex-direction: column;
     overflow: hidden;
-    height: 100vh;
+    height: 100vh;        /* fallback for old browsers */
+    height: 100dvh;       /* excludes Safari's address/nav bars */
   }
 
   #video-col {
@@ -84,8 +85,8 @@ import TopoBackground from '../components/TopoBackground.astro';
     overflow-x: auto;
     overflow-y: visible;
     scrollbar-width: none;
-    /* push content above Safari's home indicator */
-    padding-bottom: env(safe-area-inset-bottom);
+    /* push content above Safari's home indicator, with a small minimum */
+    padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
   }
   #buttons-group::-webkit-scrollbar { display: none; }
 
@@ -211,8 +212,8 @@ import TopoBackground from '../components/TopoBackground.astro';
     Object.assign(clone.style, {
       position:        'fixed',
       zIndex:          '50',
-      color:           '#000000',
-      backgroundColor: '#ffffff',
+      color:           '#00ff00',
+      backgroundColor: '#002a66',
       pointerEvents:   'none',
     });
     document.body.appendChild(clone);

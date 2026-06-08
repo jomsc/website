@@ -23,8 +23,18 @@ if (!sessionStorage.getItem("gl-seen")) {
 // Setup
 // ═══════════════════════════════════════════════
 
-const W = window.innerWidth;
-const H = window.innerHeight;
+// Use the visual viewport when available — on mobile Safari this reflects
+// the actually-visible area (excluding the toolbar), matching the 100dvh
+// layout. Falls back to innerWidth/innerHeight elsewhere.
+function viewportSize() {
+  const vv = window.visualViewport;
+  return {
+    W: Math.ceil(vv ? vv.width  : window.innerWidth),
+    H: Math.ceil(vv ? vv.height : window.innerHeight),
+  };
+}
+
+let { W, H } = viewportSize();
 
 const root   = document.createElement("div");
 root.id = "gl-root";
@@ -63,27 +73,24 @@ document.body.insertBefore(root, document.body.firstChild);
 //       lower diagonal           plateau             upper diagonal
 //
 
-const x0   = W * (0.5 - PLATEAU_FRACTION / 2);
-const x1   = W * (0.5 + PLATEAU_FRACTION / 2);
-const yMid = H * 0.5;
+let x0: number, x1: number, yMid: number;
+let pts: [number, number][] = [];
 
-// The 4 exact path points
-const pts: [number, number][] = [
-  [0,  H],
-  [x0, yMid],
-  [x1, yMid],
-  [W,  0],
-];
+function computeGeometry() {
+  x0   = W * (0.5 - PLATEAU_FRACTION / 2);
+  x1   = W * (0.5 + PLATEAU_FRACTION / 2);
+  yMid = H * 0.5;
+  pts = [
+    [0,  H],
+    [x0, yMid],
+    [x1, yMid],
+    [W,  0],
+  ];
+}
+computeGeometry();
 
 function buildPathD(): string {
   return pts.map(([x, y], i) => `${i === 0 ? "M" : "L"}${x.toFixed(2)},${y.toFixed(2)}`).join(" ");
-}
-
-// Interpolate y for a given x along the exact 3-segment path
-function yAt(x: number): number {
-  if (x <= x0) return H   - (H - yMid) * (x / x0);
-  if (x >= x1) return yMid - yMid      * ((x - x1) / (W - x1));
-  return yMid;
 }
 
 // ═══════════════════════════════════════════════
@@ -101,6 +108,7 @@ function drawHalf(canvas: HTMLCanvasElement, side: "top" | "bot") {
   canvas.width  = W;
   canvas.height = H;
   const ctx = canvas.getContext("2d")!;
+  ctx.clearRect(0, 0, W, H);
 
   // — filled polygon —
   ctx.beginPath();
@@ -126,8 +134,11 @@ function drawHalf(canvas: HTMLCanvasElement, side: "top" | "bot") {
   ctx.stroke();
 }
 
-drawHalf(canTop, "top");
-drawHalf(canBot, "bot");
+function drawAll() {
+  drawHalf(canTop, "top");
+  drawHalf(canBot, "bot");
+}
+drawAll();
 
 // ═══════════════════════════════════════════════
 // Progress bar (SVG)
@@ -150,6 +161,23 @@ requestAnimationFrame(() => requestAnimationFrame(() => {
   fillEl.style.strokeDashoffset = "0";
 }));
 
+// ── Keep coverage correct if the viewport changes before exit ──
+// (mobile Safari toolbar collapsing, orientation change, etc.)
+let exiting = false;
+function onViewportChange() {
+  if (exiting) return;
+  const s = viewportSize();
+  if (s.W === W && s.H === H) return;
+  W = s.W; H = s.H;
+  computeGeometry();
+  drawAll();
+  const d = buildPathD();
+  trackEl.setAttribute("d", d);
+  fillEl.setAttribute("d", d);
+}
+window.addEventListener("resize", onViewportChange);
+window.visualViewport?.addEventListener("resize", onViewportChange);
+
 // ═══════════════════════════════════════════════
 // Exit animation
 // ═══════════════════════════════════════════════
@@ -159,6 +187,7 @@ function easeInOut(t: number): number {
 }
 
 function runExit() {
+  exiting = true;
   svg.style.display = "none";
   const startTime = performance.now();
 
@@ -168,7 +197,11 @@ function runExit() {
     canTop.style.transform = `translateY(${-H * e}px)`;
     canBot.style.transform = `translateY(${ H * e}px)`;
     if (t < 1) requestAnimationFrame(animate);
-    else root.remove();
+    else {
+      window.removeEventListener("resize", onViewportChange);
+      window.visualViewport?.removeEventListener("resize", onViewportChange);
+      root.remove();
+    }
   }
   requestAnimationFrame(animate);
 }
