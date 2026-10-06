@@ -1,6 +1,9 @@
 ---
 import '../styles/global.css';
 import TopoBackground from '../components/TopoBackground.astro';
+
+// ✉️ Your email address — change it here, it's used everywhere below.
+const EMAIL = 'joseph.mouscadet@ensta.fr';
 ---
 <html lang="en">
 <head>
@@ -24,7 +27,7 @@ import TopoBackground from '../components/TopoBackground.astro';
     </a>
   </h1>
 
-  <main class="min-h-screen w-full flex flex-col items-center justify-center gap-12 px-6">
+  <main class="min-h-screen w-full flex flex-col items-center justify-center gap-12 px-6 py-20">
     <h2 class="contact-heading text-center">LINKS / CONTACT</h2>
 
     <div class="contact-grid grid grid-cols-1 sm:grid-cols-3 gap-8 w-full max-w-4xl">
@@ -57,7 +60,55 @@ import TopoBackground from '../components/TopoBackground.astro';
       </a>
 
     </div>
+
+    <!-- Email: same card language, laid out as a wide row + a copy button -->
+    <div class="email-row w-full max-w-4xl">
+      <a href={`mailto:${EMAIL}`} class="email-card" style="--brand:#4a4a4a;">
+        <svg class="email-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+             xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <rect x="2" y="4" width="20" height="16" rx="1" />
+          <polyline points="2 6 12 13 22 6" />
+        </svg>
+        <span class="email-text">
+          <span class="social-label">Email</span>
+          <span class="email-address">{EMAIL}</span>
+        </span>
+      </a>
+
+      <button type="button" class="email-copy" data-email={EMAIL} style="--brand:#4a4a4a;"
+              aria-label="Copy email address">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round"
+             xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <rect x="9" y="9" width="12" height="12" rx="1" />
+          <path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1" />
+        </svg>
+        <span class="email-copy__label">Copy</span>
+      </button>
+    </div>
   </main>
+
+  <script>
+    document.querySelectorAll<HTMLButtonElement>('.email-copy').forEach((btn) => {
+      const label = btn.querySelector('.email-copy__label') as HTMLElement;
+      let timer: ReturnType<typeof setTimeout> | undefined;
+      btn.addEventListener('click', async () => {
+        try {
+          await navigator.clipboard.writeText(btn.dataset.email || '');
+          label.textContent = 'Copied';
+          btn.classList.add('is-copied');
+        } catch {
+          label.textContent = 'Failed';
+        }
+        clearTimeout(timer);
+        timer = setTimeout(() => {
+          label.textContent = 'Copy';
+          btn.classList.remove('is-copied');
+        }, 1600);
+      });
+    });
+  </script>
 </body>
 </html>
 
@@ -89,6 +140,78 @@ import TopoBackground from '../components/TopoBackground.astro';
   .social-label {
     font-family: DataControl;
     font-size: 1.5rem;
+    letter-spacing: -0.02em;
+  }
+
+  /* ── Email row ── */
+  .email-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 2rem;                     /* same as the cards above (gap-8) */
+  }
+  .email-card,
+  .email-copy {
+    display: flex;
+    align-items: center;
+    background-color: #b5b5b5;
+    border: 3px solid #4a4a4a;
+    color: #4a4a4a;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background-color 0.25s ease, color 0.25s ease, transform 0.25s ease;
+  }
+  .email-card {
+    gap: 1.5rem;
+    padding: 1.25rem 1.75rem;
+    min-width: 0;
+  }
+  .email-copy {
+    flex-direction: column;
+    justify-content: center;
+    gap: 0.4rem;
+    padding: 1rem 1.75rem;
+    font: inherit;
+  }
+  .email-card:hover,
+  .email-copy:hover {
+    background-color: var(--brand);
+    color: #ffffff;
+    transform: translateY(-4px);
+  }
+  .email-copy.is-copied,
+  .email-copy.is-copied:hover {
+    background-color: #2f7d3a;
+    color: #ffffff;
+  }
+  .email-card:focus-visible,
+  .email-copy:focus-visible,
+  .social-card:focus-visible {
+    outline: 3px solid #000000;
+    outline-offset: 3px;
+  }
+  .email-icon {
+    width: 2.75rem;
+    height: 2.75rem;
+    flex-shrink: 0;
+  }
+  .email-text {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    line-height: 1.2;
+  }
+  .email-address {
+    font-family: JetBrains;
+    font-size: 1.15rem;
+    overflow-wrap: anywhere;
+  }
+  .email-copy svg {
+    width: 1.6rem;
+    height: 1.6rem;
+  }
+  .email-copy__label {
+    font-family: DataControl;
+    font-size: 1.1rem;
     letter-spacing: -0.02em;
   }
 
@@ -124,8 +247,38 @@ import TopoBackground from '../components/TopoBackground.astro';
       font-size: 1.25rem;
     }
     /* no lift on tap; brand colour gives the feedback */
-    .social-card:hover {
+    .social-card:hover,
+    .email-card:hover,
+    .email-copy:hover {
       transform: none;
+    }
+
+    .email-row {
+      gap: 1rem;
+      max-width: 22rem;
+    }
+    .email-card {
+      gap: 1rem;
+      padding: 0.85rem 1.25rem;
+      border-width: 2px;
+    }
+    .email-copy {
+      padding: 0.6rem 0.9rem;
+      border-width: 2px;
+    }
+    .email-icon {
+      width: 1.75rem;
+      height: 1.75rem;
+    }
+    .email-address {
+      font-size: 0.9rem;
+    }
+    .email-copy svg {
+      width: 1.3rem;
+      height: 1.3rem;
+    }
+    .email-copy__label {
+      font-size: 0.9rem;
     }
   }
 </style>

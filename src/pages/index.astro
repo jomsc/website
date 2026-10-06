@@ -35,9 +35,9 @@ import TopoBackground from '../components/TopoBackground.astro';
 
     <!-- Buttons -->
     <div id="buttons-group" class="flex buttons-group relative z-30">
-      <a id="btn-0" class="btn-item corps" data-original-text="- WHO AM I ?"       data-duration="500" data-link="whoami"   data-imageid=".image1" href="/whoami/"><h2>- WHO AM I ?</h2></a>
-      <a id="btn-1" class="btn-item corps" data-original-text="- PROJECTS"         data-duration="500" data-link="projects" data-imageid=".image2" href="/projects/"><h2>- PROJECTS</h2></a>
-      <a id="btn-3" class="btn-item corps" data-original-text="- LINKS / CONTACT"  data-duration="500" data-link="contact"  data-imageid=".image3" href="/contact/"><h2>- LINKS / CONTACT</h2></a>
+      <a id="btn-0" class="btn-item corps" data-original-text="WHO AM I ?"       data-duration="500" data-link="whoami"   data-imageid=".image1" href="/whoami/"><h2>WHO AM I ?</h2></a>
+      <a id="btn-1" class="btn-item corps" data-original-text="PROJECTS"         data-duration="500" data-link="projects" data-imageid=".image2" href="/projects/"><h2>PROJECTS</h2></a>
+      <a id="btn-3" class="btn-item corps" data-original-text="LINKS / CONTACT"  data-duration="500" data-link="contact"  data-imageid=".image3" href="/contact/"><h2>LINKS / CONTACT</h2></a>
     </div>
   </div>
 
@@ -95,7 +95,7 @@ import TopoBackground from '../components/TopoBackground.astro';
     text-decoration: none;
     white-space: nowrap;
     /* no background-color transition on mobile so tap feedback is instant */
-    transition: flex 0.15s ease-out, opacity 0.3s ease;
+    transition: opacity 0.3s ease;
     /* smaller border + text on mobile; extend bottom by the safe-area
        inset so buttons fill to the edge above Safari's home indicator */
     border-width: 0px 0px 1px 1px;
@@ -131,14 +131,16 @@ import TopoBackground from '../components/TopoBackground.astro';
       overflow: visible;
     }
     .btn-item {
+      /* Every button gets the same fixed share of the column height
+         (3 buttons = one third each). Nothing resizes on hover anymore. */
       flex: 1 1 0;
+      min-height: 0;
       white-space: normal;
       align-items: flex-start;
       width: 100%;
       padding: 1rem 2rem;
       border-width: 0px 0px 1px 1px;
-      /* re-enable background-color transition on desktop */
-      transition: flex 0.15s ease-out, opacity 0.3s ease, background-color 0.2s ease;
+      transition: opacity 0.3s ease, background-color 0.2s ease;
     }
     .btn-item h2 {
       font-size: 3rem;
@@ -147,213 +149,163 @@ import TopoBackground from '../components/TopoBackground.astro';
 </style>
 
 <script>
-  // ⚙️ Sizing (desktop)
-  const MAX_PERCENT = 40;
-  const MIN_PERCENT = 10;
-
   const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()-_[]{}+=?';
-  function randChar() { return CHARS[Math.floor(Math.random() * CHARS.length)]; }
+  const randChar = () => CHARS[Math.floor(Math.random() * CHARS.length)];
 
-  // Per-button animation state
-  const animState = new Map<HTMLElement, { id: number | null }>();
-
-  // ⚙️ Idle timeout: milliseconds of no movement before hover exits
+  // ⚙️ Idle timeout: milliseconds without mouse movement before the hover exits
   const IDLE_TIMEOUT_MS = 2000;
-  let idleTimer: ReturnType<typeof setTimeout> | null = null;
-  let activeBtn: HTMLElement | null = null;
-  // Set by init() to onLeave, so the idle timer can release directly.
-  let onIdleExit: ((btn: HTMLElement) => void) | null = null;
 
-  function clearIdle() {
-    if (idleTimer) { clearTimeout(idleTimer); idleTimer = null; }
-  }
-
-  function resetIdle() {
-    clearIdle();
-    if (activeBtn) {
-      idleTimer = setTimeout(() => {
-        if (activeBtn && onIdleExit) {
-          onIdleExit(activeBtn);
-        }
-      }, IDLE_TIMEOUT_MS);
-    }
-  }
-
-  // Separate continuous tracking loop — runs after text animation finishes
-  // so the clone keeps following the h2 position through flex resizes
-  let trackingId: number | null = null;
-
-  function startTracking(h2: HTMLElement, clone: HTMLElement) {
-    if (trackingId) cancelAnimationFrame(trackingId);
-    function loop() {
-      const rect = h2.getBoundingClientRect();
-      clone.style.left = rect.left + 'px';
-      clone.style.top  = rect.top  + 'px';
-      trackingId = requestAnimationFrame(loop);
-    }
-    trackingId = requestAnimationFrame(loop);
-  }
-
-  function stopTracking() {
-    if (trackingId) { cancelAnimationFrame(trackingId); trackingId = null; }
-  }
-
-  function startTextAnim(btn: HTMLElement) {
-    const h2 = btn.querySelector('h2') as HTMLElement;
-    const original = btn.dataset.originalText || h2.textContent || '';
-    const duration = parseInt(btn.dataset.duration || '500');
-    const startTime = Date.now();
-
-    document.querySelectorAll('.text-clone').forEach(el => el.remove());
-    h2.style.opacity = '0';
-
-    const clone = document.createElement('h2');
-    clone.className = 'floating-text text-clone pointer-events-none mix-blend-difference';
-    Object.assign(clone.style, {
-      position:        'fixed',
-      zIndex:          '50',
-      color:           '#00ff00',
-      backgroundColor: '#002a66',
-      pointerEvents:   'none',
-    });
-    document.body.appendChild(clone);
-
-    // Tracking loop starts immediately and never stops until stopTextAnim
-    startTracking(h2, clone);
-
-    const state = { id: null as number | null };
-    animState.set(btn, state);
-
-    function animate() {
-      const progress = Math.min((Date.now() - startTime) / duration, 1);
-      const keepUpTo = Math.ceil(original.length * progress);
-      const text = original.slice(0, keepUpTo) +
-        original.slice(keepUpTo).split('').map(c => (c === ' ' || c === '/') ? c : randChar()).join('');
-      clone.textContent = text;
-      if (progress < 1) {
-        state.id = requestAnimationFrame(animate);
-      } else {
-        state.id = null;
-        // tracking loop keeps running independently after text settles
-      }
-    }
-
-    state.id = requestAnimationFrame(animate);
-  }
-
-  function stopTextAnim(btn: HTMLElement) {
-    const h2 = btn.querySelector('h2') as HTMLElement;
-    h2.style.opacity = '1';
-    const state = animState.get(btn);
-    if (state?.id) { cancelAnimationFrame(state.id); state.id = null; }
-    stopTracking();
-    document.querySelectorAll('.text-clone').forEach(el => el.remove());
-  }
+  // One AbortController per init, so re-running init (DOMContentLoaded +
+  // astro:page-load) never stacks duplicate listeners.
+  let controller: AbortController | null = null;
 
   function init() {
-    const isDesktop = window.matchMedia("(min-width: 768px) and (pointer: fine)").matches;
-    const group     = document.getElementById("buttons-group")!;
-    const videocol  = document.getElementById("video-col")!;
-    const buttons   = Array.from(group.querySelectorAll<HTMLElement>(".btn-item"));
+    const group    = document.getElementById('buttons-group');
+    const videocol = document.getElementById('video-col');
+    if (!group || !videocol) return;
 
-    function onEnter(btn: HTMLElement) {
-      clearIdle();
-      activeBtn = btn;
-      const imageId = btn.dataset.imageid || '';
-      document.querySelectorAll<HTMLElement>(imageId).forEach(el => {
-        el.style.opacity = '1';
+    controller?.abort();
+    controller = new AbortController();
+    const { signal } = controller;
+
+    // Mobile: no hover/glitch wiring. Buttons just navigate;
+    // CSS .btn-item:active gives tap feedback.
+    const isDesktop = window.matchMedia('(min-width: 768px) and (pointer: fine)').matches;
+    if (!isDesktop) return;
+
+    const buttons = Array.from(group.querySelectorAll<HTMLElement>('.btn-item'));
+
+    let activeBtn: HTMLElement | null = null;
+    let idleTimer: ReturnType<typeof setTimeout> | null = null;
+    let scrambleId: number | null = null;
+    let clone: HTMLElement | null = null;
+
+    // ── visuals ──────────────────────────────────────────────────────────
+    function setImage(btn: HTMLElement, visible: boolean) {
+      const sel = btn.dataset.imageid;
+      if (!sel) return;
+      document.querySelectorAll<HTMLElement>(sel).forEach(el => {
+        el.style.opacity = visible ? '1' : '0';
       });
-      // Fade ALL buttons (clone takes over visually)
-      buttons.forEach(b => { b.style.opacity = '0'; });
-      videocol.querySelectorAll<HTMLElement>('.menuvideo').forEach(el => {
-        el.style.opacity = '0';
+    }
+
+    // Global "hover mode": buttons + video fade out, title turns black.
+    function setHoverMode(on: boolean) {
+      buttons.forEach(b => {
+        b.style.opacity = on ? '0' : '1';
+        if (!on) b.style.backgroundColor = '';
+      });
+      videocol!.querySelectorAll<HTMLElement>('.menuvideo').forEach(el => {
+        el.style.opacity = on ? '0' : '1';
       });
       document.querySelectorAll<HTMLElement>('.titre').forEach(el => {
-        el.style.color = '#000000';
+        el.style.color = on ? '#000000' : '#ffffff';
       });
+    }
+
+    // ── floating scrambled text ──────────────────────────────────────────
+    // Buttons no longer resize, so the clone is placed once (and again on
+    // window resize) instead of being chased every frame.
+    function placeClone() {
+      if (!activeBtn || !clone) return;
+      const h2 = activeBtn.querySelector('h2') as HTMLElement;
+      const r = h2.getBoundingClientRect();
+      clone.style.left = r.left + 'px';
+      clone.style.top  = r.top  + 'px';
+    }
+
+    function stopTextAnim() {
+      if (scrambleId) { cancelAnimationFrame(scrambleId); scrambleId = null; }
+      document.querySelectorAll('.text-clone').forEach(el => el.remove());
+      clone = null;
+      buttons.forEach(b => {
+        const h2 = b.querySelector('h2') as HTMLElement | null;
+        if (h2) h2.style.opacity = '1';
+      });
+    }
+
+    function startTextAnim(btn: HTMLElement) {
+      stopTextAnim();
+      const h2 = btn.querySelector('h2') as HTMLElement;
+      const original = btn.dataset.originalText || h2.textContent || '';
+      const duration = parseInt(btn.dataset.duration || '500');
+      h2.style.opacity = '0';
+
+      // Copy the real heading's type metrics so the clone sits exactly on it.
+      const cs = getComputedStyle(h2);
+      clone = document.createElement('h2');
+      clone.className = 'floating-text text-clone pointer-events-none mix-blend-difference';
+      Object.assign(clone.style, {
+        position:        'fixed',
+        zIndex:          '50',
+        margin:          '0',
+        color:           '#00ff00',
+        backgroundColor: '#002a66',
+        pointerEvents:   'none',
+        fontSize:        cs.fontSize,
+        lineHeight:      cs.lineHeight,
+        letterSpacing:   cs.letterSpacing,
+      });
+      document.body.appendChild(clone);
+      placeClone();
+
+      const start = performance.now();
+      const step = (now: number) => {
+        if (!clone) return;
+        const progress = Math.min((now - start) / duration, 1);
+        const keepUpTo = Math.ceil(original.length * progress);
+        clone.textContent =
+          original.slice(0, keepUpTo) +
+          original.slice(keepUpTo).split('')
+            .map(c => (c === ' ' || c === '/') ? c : randChar()).join('');
+        scrambleId = progress < 1 ? requestAnimationFrame(step) : null;
+      };
+      scrambleId = requestAnimationFrame(step);
+    }
+
+    // ── idle timer ───────────────────────────────────────────────────────
+    function clearIdle() {
+      if (idleTimer) { clearTimeout(idleTimer); idleTimer = null; }
+    }
+    function resetIdle() {
+      clearIdle();
+      if (activeBtn) idleTimer = setTimeout(release, IDLE_TIMEOUT_MS);
+    }
+
+    // ── hover state ──────────────────────────────────────────────────────
+    // Hovering a button always switches to it, even if another one is active.
+    function activate(btn: HTMLElement) {
+      if (activeBtn === btn) { resetIdle(); return; }
+      const prev = activeBtn;
+      if (prev) setImage(prev, false);   // cross-fades with the next image
+      activeBtn = btn;
+      setImage(btn, true);
+      if (!prev) setHoverMode(true);
       startTextAnim(btn);
       resetIdle();
     }
 
-    function onLeave(btn: HTMLElement) {
+    function release() {
+      if (!activeBtn) return;
       clearIdle();
+      setImage(activeBtn, false);
       activeBtn = null;
-      const imageId = btn.dataset.imageid || '';
-      document.querySelectorAll<HTMLElement>(imageId).forEach(el => {
-        el.style.opacity = '0';
-      });
-      buttons.forEach(b => {
-        b.style.opacity = '1';
-        b.style.backgroundColor = '';
-      });
-      videocol.querySelectorAll<HTMLElement>('.menuvideo').forEach(el => {
-        el.style.opacity = '1';
-      });
-      document.querySelectorAll<HTMLElement>('.titre').forEach(el => {
-        el.style.color = '#ffffff';
-      });
-      stopTextAnim(btn);
+      setHoverMode(false);
+      stopTextAnim();
     }
 
-    // Let the idle timer release the active button via onLeave.
-    onIdleExit = onLeave;
-
-    // Mobile: skip all hover/glitch wiring entirely.
-    // Buttons just navigate immediately; CSS .btn-item:active gives tap feedback.
-    if (!isDesktop) return;
-
     buttons.forEach(btn => {
-      btn.addEventListener('mouseenter', () => {
-        // Sticky: if another button is already active, ignore this enter.
-        // The first selection holds until the idle timeout fires or the
-        // cursor crosses into the video column.
-        if (activeBtn && activeBtn !== btn) return;
-        onEnter(btn);
-      });
-      // No per-button mouseleave — exit is handled by the idle timer
-      // and by entering the video column (below).
+      btn.addEventListener('mouseenter', () => activate(btn), { signal });
     });
 
     // Crossing into the left (video) side releases the active button.
-    videocol.addEventListener('mouseenter', () => {
-      if (activeBtn) onLeave(activeBtn);
-    });
+    videocol.addEventListener('mouseenter', release, { signal });
 
-    function reset() {
-      buttons.forEach(btn => { btn.style.flex = "1 1 0"; });
-    }
-
-    // ⚙️ How much bigger the central button is (1 = none, higher = bigger)
-    const CENTER_BIAS = 1.6;
-
-    function applyGrow(mouseY: number) {
-      const centres = buttons.map(btn => {
-        const r = btn.getBoundingClientRect();
-        return r.top + r.height / 2;
-      });
-      const dists   = centres.map(cy => Math.abs(cy - mouseY));
-      const maxDist = Math.max(...dists) || 1;
-      const mid     = (buttons.length - 1) / 2;
-      const raw     = dists.map((d, i) => {
-        const norm = d / maxDist;
-        const base = MAX_PERCENT - norm * (MAX_PERCENT - MIN_PERCENT);
-        // Weight peaks at the central index, falls off toward the edges.
-        const centerWeight = 1 + (CENTER_BIAS - 1) * (1 - Math.abs(i - mid) / (mid || 1));
-        return base * centerWeight;
-      });
-      const sum = raw.reduce((a, b) => a + b, 0);
-      buttons.forEach((btn, i) => {
-        btn.style.flex = `${((raw[i] / sum) * 100).toFixed(3)} 1 0`;
-      });
-    }
-
-    document.addEventListener("mousemove", (e: MouseEvent) => {
-      applyGrow(e.clientY);
-      resetIdle(); // reset 2s idle timer on every movement
-    });
-    document.addEventListener("mouseleave", reset);
+    // Any movement keeps the hover alive; 2s of stillness releases it.
+    document.addEventListener('mousemove', () => { if (activeBtn) resetIdle(); }, { signal });
+    window.addEventListener('resize', placeClone, { signal });
   }
 
-  document.addEventListener("DOMContentLoaded", init);
-  document.addEventListener("astro:page-load",  init);
+  document.addEventListener('DOMContentLoaded', init);
+  document.addEventListener('astro:page-load',  init);
 </script>

@@ -2,126 +2,133 @@
    Drawer + card-stack styling, matched to the site's grey/industrial system.
    Palette: #a9a9a9 page · #d1d1d1 panel · #929292 card. */
 :root {
-  --card-w: clamp(238px, 29vw, 459px);
-  --card-h: clamp(323px, 41vw, 612px);
   --accent: #000000;
   --line: #000000;
+  --tab-h: 28px;           /* height of the folder notch */
   background-color: #d1d1d1;
 }
 
-/* RIGHT panel = the drawer */
+/* RIGHT panel = the drawer.
+   container-type lets the cards size themselves from the panel's own width
+   AND height (cqw / cqh), so they fit any aspect ratio and shrink with the
+   panel when a project is opened. */
 .right {
   flex: 0 0 48%;
   height: 100%;
   position: relative;
   perspective: 1600px;
+  container-type: size;
   overflow: hidden;
+  cursor: pointer;
   background-color: #a9a9a9;
   border-top: 1px solid var(--line);
   border-bottom: 1px solid var(--line);
   border-left: 1px solid var(--line);
+  transition: flex-basis .6s cubic-bezier(.16, 1, .3, 1);
 }
+.right.front-is-draft { cursor: default; }
 
 .drawer {
   position: absolute;
   inset: 0;
   display: grid;
-  place-items: center;   /* baseline = panel center; script offsets via --ty */
-  /* No preserve-3d: each card is its own flat plane, so z-index controls
-     stacking and the focused card reliably sits on top and stays clickable. */
+  place-items: center;   /* baseline = panel center; script offsets vertically */
+  pointer-events: none;  /* the panel itself handles hover + click */
 }
 
-/* CARDS — hinge around the X (transverse) axis. Per-card vertical position
-   (--ty) and tilt (--tilt) are set by the script so the focused card can be
-   barely-rotated, the pile above tilts back, and passed cards drop far down.
-   All cards share the same depth (no Z-pop); clearance is purely vertical. */
+/* CARDS — position, tilt and scale are written by drawer.ts every frame
+   (transform only), so there is no CSS transition on transform. */
 .card {
+  /* never taller than 58% of the panel, never wider than ~84% of it */
+  --card-h: min(58cqh, 112cqw, 640px);
   position: absolute;
-  width: var(--card-w);
   height: var(--card-h);
-  --offset: 0;
-  --abs: 0;
-  --ty: 0px;
-  --tilt: 0deg;
-  --sc: 1;
-  padding: 1.6rem;
+  width: calc(var(--card-h) * .75);
+  container-type: inline-size;   /* lets the card's text scale with the card */
+  padding: 1.1rem;
   background-color: #929292;
   border: 1px solid var(--line);
   border-radius: 12px;
   color: #000000;
   text-align: left;
-  cursor: pointer;
   display: flex;
   flex-direction: column;
-  justify-content: flex-start;
   font-family: JetBrains;
+  pointer-events: none;
   transform-origin: center center;
+  transform: perspective(1200px) rotateX(-55deg);   /* first paint, before JS */
   box-shadow: 0 10px 24px -10px rgba(0, 0, 0, .5);
   will-change: transform;
-  transform:
-    translateY(var(--ty))
-    perspective(1200px)
-    rotateX(var(--tilt))
-    scale(var(--sc));
-  transition: transform .5s cubic-bezier(.16, 1, .3, 1), opacity .4s ease,
-              background-color .3s ease;
+  transition: background-color .3s ease, box-shadow .3s ease;
 }
 
-/* the folder tab — a small nook on the top-left edge */
+/* the folder tab — a small notch on the top-left edge */
 .card__tab {
   position: absolute;
-  top: -28px;
-  left: 28px;
-  width: 140px;
-  height: 29px;            /* +1px to overlap the card's top border */
+  top: calc(-1 * var(--tab-h));
+  left: 6%;
+  width: 30%;
+  height: calc(var(--tab-h) + 1px);   /* +1px to overlap the card's top border */
   background-color: #929292;
   border: 1px solid var(--line);
   border-bottom: none;
   border-radius: 10px 10px 0 0;
+  transition: background-color .3s ease;
 }
 
-/* card text */
-.card__body { display: block; }
+/* card text — clipped inside the card, image takes whatever room is left */
+.card__body {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+}
 .card__name {
   font-family: DataControl;
-  font-size: 1.8rem;
+  font-size: clamp(1rem, 7.5cqi, 1.9rem);
   line-height: 1.05;
   letter-spacing: -.01em;
   text-transform: uppercase;
   display: block;
+  flex-shrink: 0;
+}
+.card__summary {
+  display: -webkit-box;
+  -webkit-line-clamp: 5;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  flex-shrink: 0;
+  margin-top: .7rem;
+  font-family: JetBrains;
+  font-size: clamp(.7rem, 3.8cqi, 1rem);
+  line-height: 1.4;
+  color: #222;
 }
 .card__media {
   display: block;
-  width: 100%;
-  margin: 1rem 0;
+  flex: 1 1 0;
+  min-height: 0;
+  margin-top: .8rem;
 }
 .card__media img {
   display: block;
   width: 100%;
-  aspect-ratio: 1 / 1;     /* square */
-  object-fit: cover;        /* crop to fill, scaled down, no distortion */
+  height: auto;
+  max-height: 100%;
+  aspect-ratio: 1 / 1;     /* square when there's room, cropped wider when not */
+  object-fit: cover;
   border: 1px solid var(--line);
   border-radius: 6px;
 }
-.card__summary {
-  display: -webkit-box;
-  -webkit-line-clamp: 6;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  margin-top: .9rem;
-  font-family: JetBrains;
-  font-size: 1rem;
-  line-height: 1.4;
-  color: #222;
-}
 .card__soon {
   position: absolute;
-  inset: -28px 0 0 0;       /* extend up to cover the tab as well */
+  inset: calc(-1 * var(--tab-h)) 0 0 0;   /* extend up to cover the tab as well */
   display: none;
   place-items: center;
-  padding-top: 28px;
+  padding-top: var(--tab-h);
   font-family: DataControl;
-  font-size: 1.6rem;
+  font-size: clamp(1rem, 7cqi, 1.6rem);
   text-transform: uppercase;
   letter-spacing: .04em;
   color: #000;
@@ -129,20 +136,17 @@
   border-radius: 10px;
 }
 
-/* The focused card is highlighted; stacking follows rank order (set in JS). */
+/* The front (highlighted) card. */
 .card.is-front {
   background-color: #d1d1d1;
   box-shadow: 0 18px 30px -10px rgba(0, 0, 0, .55);
 }
 .card.is-front .card__tab { background-color: #d1d1d1; }
 
-.card:not(.is-front) { opacity: 1; }
-
-/* Draft / coming-soon cards: greyed out uniformly (card + tab), not interactive. */
+/* Draft / coming-soon cards: greyed out uniformly (card + tab), not openable. */
 .card.is-draft,
 .card.is-draft .card__tab { filter: grayscale(1) brightness(.85); }
-.card.is-draft { cursor: default; }
-.card.is-draft:hover .card__soon { display: grid; }
+.card.is-draft.is-front .card__soon { display: grid; }
 
 /* LEFT panel = project content (matches .corps surface) */
 .left {
@@ -152,6 +156,8 @@
   overflow-y: auto;
   transition: opacity .4s ease;
   background-color: #d1d1d1;
+  font-size: .95rem;
+  line-height: 1.55;
 }
 .left.is-empty {
   display: grid;
@@ -163,25 +169,43 @@
 }
 .left[data-loading="true"] { opacity: .4; }
 
-/* content typography inside the swapped-in project */
-/* Project content: a centered, readable column with justified text. */
+/* Project content: compact column, justified text, small margins. */
 .left .prose {
-  padding: 1rem 2rem;
+  padding: .25rem .75rem 2rem;
   color: #000000;
-  max-width: 70ch;        /* readable column width */
-  margin: 0 auto;         /* centered within the panel */
-  text-align: justify;    /* justified paragraphs */
-  hyphens: auto;          /* nicer justification, fewer big gaps */
+  max-width: 90ch;
+  margin: 0 auto;
+  text-align: justify;
+  hyphens: auto;
 }
 
-/* Block media is centered and capped so it doesn't span the full column edge-to-edge. */
+/* Headings inside a project are much smaller than the site-wide h1/h2. */
+.left h1 {
+  font-size: clamp(1.6rem, 2.4vw, 2.2rem);
+  line-height: 1.05;
+  padding: 0;
+  margin: .4rem 0 .6rem;
+}
+.left h2 {
+  font-size: clamp(1.25rem, 1.8vw, 1.6rem);
+  line-height: 1.1;
+  margin: 1.2rem 0 .4rem;
+}
+.left h3 {
+  font-size: 1.1rem;
+  line-height: 1.2;
+  margin: 1rem 0 .3rem;
+}
+.left p { margin: 0 0 .7rem; }
+
+/* Block media is centered and capped. */
 .left .prose img,
 .left .prose video {
   display: block;
   width: 100%;
   max-width: 100%;
   height: auto;
-  margin: 1.5rem auto;    /* auto left/right = centered */
+  margin: .75rem auto;
   border: 1px solid var(--line);
 }
 
@@ -191,7 +215,7 @@
   display: block;
   width: 100%;
   height: clamp(280px, 40vh, 520px);
-  margin: 1.5rem auto;
+  margin: .75rem auto;
   background: transparent;
   border: 1px solid var(--line);
   --poster-color: transparent;
